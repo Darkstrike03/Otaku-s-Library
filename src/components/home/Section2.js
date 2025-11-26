@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tv, BookOpen, Book, Flame, TrendingUp, Star, Clock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 export default function PopularSection({ isDark }) {
   const [activeCategory, setActiveCategory] = useState('anime');
   const [popularData, setPopularData] = useState(null);
-  const [scrollPosition, setScrollPosition] = useState({});
+  const navigate = useNavigate();
 
   // Categories with icons and colors
   const categories = [
@@ -92,6 +93,10 @@ export default function PopularSection({ isDark }) {
     }
   };
 
+    // Handle card click
+  const handleCardClick = (uid) => {
+    navigate(`/details/${uid}`); // Navigate to details page with uid
+  };
   const currentData = popularData?.[activeCategory] || [];
   const activeTab = categories.find(cat => cat.id === activeCategory);
 
@@ -201,6 +206,7 @@ export default function PopularSection({ isDark }) {
             {currentData.map((item, index) => (
               <div
                 key={item.id}
+                onClick={() => handleCardClick(item.uid)} // Pass the uid to the details page
                 className="flex-shrink-0 w-64 group/card snap-start"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
