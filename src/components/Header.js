@@ -22,35 +22,11 @@ export default function Header({ isDark, toggleTheme }) {
           <div className="hidden lg:flex items-center justify-between gap-8">
             {/* Logo */}
             <div className="flex items-center gap-6 group cursor-pointer flex-shrink-0">
-              <div className="relative flex items-center">
-                <div
-                  className={`absolute inset-0 blur-xl opacity-60 ${
-                    isDark ? 'bg-purple-600' : 'bg-purple-400'
-                  } rounded-full scale-150 group-hover:scale-175 transition-transform duration-500`}
-                ></div>
-
-                <div className="relative flex items-center">
-                  <span
-                    className={`text-5xl font-black ${
-                      isDark
-                        ? 'text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-pink-600'
-                        : 'text-transparent bg-clip-text bg-gradient-to-br from-purple-600 to-pink-800'
-                    } font-serif tracking-tighter transform group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    O
-                  </span>
-                  <span
-                    className={`text-5xl font-black ${
-                      isDark
-                        ? 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600'
-                        : 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-blue-800'
-                    } font-mono -ml-5 transform group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    L
-                  </span>
-                </div>
-              </div>
-
+              <img
+                src={`${process.env.PUBLIC_URL}/logo192.png`} // Replace 'logo.png' with the actual file name in your public folder
+                alt="Otaku's Library Logo"
+                className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full"
+              />
               <div className="flex flex-col">
                 <h1
                   className={`text-2xl font-black tracking-tight ${
@@ -155,32 +131,10 @@ export default function Header({ isDark, toggleTheme }) {
               {/* Compact Logo */}
               <div className="flex items-center gap-3 group cursor-pointer">
                 <div className="relative flex items-center">
-                  <div
-                    className={`absolute inset-0 blur-lg opacity-60 ${
-                      isDark ? 'bg-purple-600' : 'bg-purple-400'
-                    } rounded-full scale-150`}
-                  ></div>
-
-                  <div className="relative flex items-center">
-                    <span
-                      className={`text-3xl sm:text-4xl font-black ${
-                        isDark
-                          ? 'text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-pink-600'
-                          : 'text-transparent bg-clip-text bg-gradient-to-br from-purple-600 to-pink-800'
-                      } font-serif tracking-tighter`}
-                    >
-                      O
-                    </span>
-                    <span
-                      className={`text-3xl sm:text-4xl font-black ${
-                        isDark
-                          ? 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600'
-                          : 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-blue-800'
-                      } font-mono -ml-3 sm:-ml-4`}
-                    >
-                      L
-                    </span>
-                  </div>
+                  <img src={`${process.env.PUBLIC_URL}/logo192.png`} // Replace 'logo.png' with the actual file name in your public folder
+                      alt="Otaku's Library Logo"
+                      className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full"
+                    />
                 </div>
 
                 <div className="flex flex-col">

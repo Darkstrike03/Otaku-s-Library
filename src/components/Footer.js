@@ -67,18 +67,10 @@ export default function Footer({ isDark }) {
                   } rounded-full scale-150 group-hover:scale-175 transition-transform duration-500`}></div>
                   
                   <div className="relative flex items-center">
-                    <span className={`text-4xl font-black ${
-                      isDark ? 'text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-pink-600' 
-                      : 'text-transparent bg-clip-text bg-gradient-to-br from-purple-600 to-pink-800'
-                    } font-serif tracking-tighter`}>
-                      O
-                    </span>
-                    <span className={`text-4xl font-black ${
-                      isDark ? 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600' 
-                      : 'text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-blue-800'
-                    } font-mono -ml-4`}>
-                      L
-                    </span>
+                    <img src={`${process.env.PUBLIC_URL}/logo192.png`} // Replace 'logo.png' with the actual file name in your public folder
+    alt="Otaku's Library Logo"
+    className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full"
+  />
                   </div>
                 </div>
                 

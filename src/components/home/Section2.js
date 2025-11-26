@@ -13,7 +13,7 @@ export default function PopularSection({ isDark }) {
     { id: 'manhwa', name: 'Manhwa', icon: Book, color: 'from-pink-500 to-rose-500', bgColor: 'pink' },
     { id: 'manhua', name: 'Manhua', icon: Sparkles, color: 'from-yellow-500 to-orange-500', bgColor: 'yellow' },
     { id: 'donghua', name: 'Donghua', icon: TrendingUp, color: 'from-green-500 to-emerald-500', bgColor: 'green' },
-    { id: 'webnovels', name: 'Web Novels', icon: Book, color: 'from-indigo-500 to-violet-500', bgColor: 'indigo' },
+    { id: 'webnovels', name: 'Novels', icon: Book, color: 'from-indigo-500 to-violet-500', bgColor: 'indigo' },
   ];
 
   // Load popular.json from /JSON folder
@@ -21,7 +21,7 @@ export default function PopularSection({ isDark }) {
     const loadPopularData = async () => {
       try {
         // Try to read from the JSON folder
-        const response = await fetch('/JSON/popular.json');
+        const response = await fetch('/JSON/popular26.11.25.json');
         if (response.ok) {
           const data = await response.json();
           setPopularData(data);
@@ -128,7 +128,7 @@ export default function PopularSection({ isDark }) {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className="flex gap-3 pt-5 justify-normal ps-5 overflow-x-auto scrollbar-hide pb-4">
           {categories.map((category) => {
             const Icon = category.icon;
             const isActive = activeCategory === category.id;
@@ -240,7 +240,7 @@ export default function PopularSection({ isDark }) {
                     </div>
 
                     {/* Status badge */}
-                    <div className={`absolute bottom-20 left-4 px-3 py-1 rounded-full text-xs font-bold ${
+                    <div className={`absolute bottom-11 left-4 px-3 py-1 rounded-full text-xs font-bold ${
                       item.status === 'Ongoing' 
                         ? 'bg-green-500/80 text-white' 
                         : item.status === 'Completed' 
@@ -253,11 +253,18 @@ export default function PopularSection({ isDark }) {
 
                   {/* Content */}
                   <div className="p-4">
-                    <h3 className={`font-black text-lg mb-2 line-clamp-2 ${
-                      isDark ? 'text-white' : 'text-black'
-                    }`}>
+                    <div
+                      className={`font-black text-lg mb-2 overflow-hidden ${
+                        isDark ? 'text-white' : 'text-black'
+                      }`}
+                      style={{
+                        maxHeight: '1.5rem', // Limit the height of the title container
+                        overflowY: 'auto', // Enable vertical scrolling for overflow text
+                        scrollbarWidth: 'none' // Thin scrollbar for better aesthetics
+                      }}
+                    >
                       {item.title}
-                    </h3>
+                    </div>
 
                     <div className={`flex items-center gap-4 text-sm ${
                       isDark ? 'text-white/60' : 'text-black/60'
