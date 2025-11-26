@@ -30,7 +30,7 @@ export default function Footer({ isDark }) {
   const socialLinks = [
     { icon: Twitter, label: 'Twitter', href: '#' },
     { icon: MessageCircle, label: 'Discord', href: '#' },
-    { icon: Github, label: 'GitHub', href: '#' },
+    { icon: Github, label: 'GitHub', href: 'https://github.com/Darkstrike03/Otaku-s-Library' },
   ];
 
   return (
@@ -304,4 +304,5 @@ export default function Footer({ isDark }) {
       </footer>
     </div>
   );
+
 }
