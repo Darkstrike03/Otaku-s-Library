@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/home/Home';
+import AnimeUI from './components/Pages/AnimeUi';
 
 export default function App() {
   const [isDark, setIsDark] = useState(true); // State for dark mode
@@ -11,11 +13,13 @@ export default function App() {
   const toggleTheme = () => setIsDark(!isDark);
 
   return (
-    <div>
-      {/* Pass isDark and toggleTheme to Header */}
+    <Router>
       <Header isDark={isDark} toggleTheme={toggleTheme} />
-      <Home isDark={isDark} toggleTheme={toggleTheme}/>
-      <Footer isDark={isDark} />
-    </div>
+      <Routes>
+      <Route path="/" element={<Home isDark={isDark} toggleTheme={toggleTheme}/>} />
+      <Route path="/details/:uid" element={<AnimeUI />} />
+      </Routes>
+      <Footer isDark={isDark} />  
+    </Router>
   );
 }
