@@ -7,9 +7,9 @@
 
 <!-- Badges (replace URLs with your repo/status links) -->
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Contributors](https://img.shields.io/github/contributors/your-username/otakus-library)](https://github.com/your-username/otakus-library/graphs/contributors)
-[![Issues](https://img.shields.io/github/issues/your-username/otakus-library)](https://github.com/your-username/otakus-library/issues)
-[![Stars](https://img.shields.io/github/stars/your-username/otakus-library)](https://github.com/your-username/otakus-library/stargazers)
+[![Contributors](https://img.shields.io/github/contributors/Darkstrike03/otakus-library)](https://github.com/Darkstrike03/otakus-library/graphs/contributors)
+[![Issues](https://img.shields.io/github/issues/Darkstrike03/otakus-library)](https://github.com/Darkstrike03/otakus-library/issues)
+[![Stars](https://img.shields.io/github/stars/Darkstrike03/otakus-library)](https://github.com/Darkstrike03/otakus-library/stargazers)
 
 ---
 
