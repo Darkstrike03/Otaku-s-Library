@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'ui-sans-serif', 'system-ui'],
+      },
       keyframes: {
         slideIn: {
           '0%': { opacity: '0', transform: 'translateY(-20px)' },
