@@ -133,7 +133,7 @@ export default function PopularSection({ isDark }) {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex gap-3 pt-5 justify-normal ps-5 overflow-x-auto scrollbar-hide pb-4">
+        <div className="flex gap-3 pt-9 lg:justify-center justify-normal ps-20 overflow-x-auto scrollbar-hide pb-9 mb-5">
           {categories.map((category) => {
             const Icon = category.icon;
             const isActive = activeCategory === category.id;
@@ -216,7 +216,7 @@ export default function PopularSection({ isDark }) {
                   isDark ? 'border-white/10' : 'border-black/10'
                 }`}>
                   {/* Image */}
-                  <div className="relative h-96 overflow-hidden">
+                  <div className="relative h-72 overflow-hidden">
                     <img
                       src={item.image}
                       alt={item.title}

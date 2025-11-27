@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Moon, Sun, Menu, BookOpen, Tv, Book, X } from 'lucide-react';
+import { Search, Moon, Sun, Menu, BookOpen, Tv, Book, X, User2, LibrarySquare } from 'lucide-react';
 
 export default function Header({ isDark, toggleTheme }) {
   const [searchValue, setSearchValue] = useState('');
@@ -113,14 +113,28 @@ export default function Header({ isDark, toggleTheme }) {
                 </div>
               </button>
 
-              <button
-                className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 ${
-                  isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-black/5 hover:bg-black/10 text-black'
-                } backdrop-blur-xl`}
-                aria-label="Menu"
-              >
-                <Menu size={22} />
-              </button>
+              {/* Controls: Profile & Library Buttons */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Profile Button */}
+                <button
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                    isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
+                  }`}
+                  aria-label="Profile"
+                >
+                  <User2 size={20} /> {/* Replace with your desired icon */}
+                </button>
+
+                {/* Library Button */}
+                <button
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                    isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
+                  }`}
+                  aria-label="Library"
+                >
+                  <LibrarySquare size={20} /> {/* Replace with your desired icon */}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -173,17 +187,31 @@ export default function Header({ isDark, toggleTheme }) {
                   >
                     {isDark ? <Moon size={12} className="text-white" /> : <Sun size={12} className="text-white" />}
                   </div>
+                  
                 </button>
 
-                <button
-                  onClick={toggleMenu}
-                  className={`p-2 sm:p-2.5 rounded-xl transition-all duration-300 ${
-                    isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-black/5 hover:bg-black/10 text-black'
-                  } backdrop-blur-xl`}
-                  aria-label="Menu"
-                >
-                  {menuOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
+                {/* Controls: Profile & Library Buttons */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Profile Button */}
+                  <button
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                      isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
+                    }`}
+                    aria-label="Profile"
+                  >
+                    <User2 size={20} /> {/* Replace with your desired icon */}
+                  </button>
+
+                  {/* Library Button */}
+                  <button
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                      isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
+                    }`}
+                    aria-label="Library"
+                  >
+                    <LibrarySquare size={20} /> {/* Replace with your desired icon */}
+                  </button>
+                  </div>
               </div>
             </div>
 
@@ -246,17 +274,7 @@ export default function Header({ isDark, toggleTheme }) {
       </header>
 
       {/* Mobile Menu Overlay */}
-      {menuOpen && (
-        <div
-          className={`lg:hidden fixed inset-0 z-40 ${
-            isDark ? 'bg-black/95' : 'bg-white/95'
-          } backdrop-blur-xl`}
-        >
-          <div className="container mx-auto px-4 py-6">
-            <div className={`text-center text-xl ${isDark ? 'text-white' : 'text-black'}`}>Menu content here</div>
-          </div>
-        </div>
-      )}
+    
 
       <style jsx>{`
         @keyframes slide {

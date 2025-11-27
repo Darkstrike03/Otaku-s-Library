@@ -49,6 +49,16 @@ export default function Section4({ isDark }) {
         isDark ? "bg-black" : "bg-white"
       }`}
     >
+      <div className="absolute top-0 left-0 right-0 h-px overflow-hidden">
+          <div className={`h-full w-1/3 ${
+            isDark 
+              ? 'bg-gradient-to-r from-transparent via-purple-500 to-transparent' 
+              : 'bg-gradient-to-r from-transparent via-purple-600 to-transparent'
+          }`} style={{
+            animation: 'slide 3s ease-in-out infinite',
+          }}></div>
+        </div>
+        
       <div className="container mx-auto px-4">
         {/* Title */}
         <div className="flex flex-col items-center mb-12">

@@ -45,13 +45,13 @@ export default function LibrarianPicks({ isDark }) {
   });
 
   const filters = [
-    { id: 'all', label: 'All Picks', icon: Crown },
+    { id: 'all', label: 'Featured', icon: Crown },
     { id: 'anime', label: 'Anime', icon: Play },
     { id: 'manga', label: 'Manga', icon: BookmarkPlus },
     { id: 'manhwa', label: 'Manhwa', icon: Star },
     { id: 'manhua', label: 'Manhua', icon: Sparkles },
     { id: 'donghua', label: 'Donghua', icon: TrendingUp },
-    { id: 'webnovel', label: 'Web Novel', icon: Heart },
+    { id: 'webnovel', label: 'Novel', icon: Heart },
   ];
 
   const filteredPicks = picksData?.picks?.filter(pick => 
@@ -129,7 +129,7 @@ export default function LibrarianPicks({ isDark }) {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className="flex gap-3 pt-7 justify-normal lg:justify-center ps-10 overflow-x-auto scrollbar-hide pb-5 mb-13">
           {filters.map((filterOption) => {
             const Icon = filterOption.icon;
             const isActive = filter === filterOption.id;
@@ -167,7 +167,7 @@ export default function LibrarianPicks({ isDark }) {
         </div>
 
         {/* Masonry Grid Layout */}
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+        <div className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           {filteredPicks.map((pick, index) => (
             <div
               key={pick.id}
@@ -187,7 +187,7 @@ export default function LibrarianPicks({ isDark }) {
                 }`}
               >
                 {/* Image Container */}
-                <div className="relative aspect-[3/4] overflow-hidden">
+                <div className="relative aspect-[4/3.5] sm:aspect-[3.5/4] overflow-hidden">
                   <img
                     src={pick.image}
                     alt={pick.title}
@@ -226,21 +226,32 @@ export default function LibrarianPicks({ isDark }) {
 
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className={`font-black text-base mb-2 line-clamp-2 ${
+                  <div className={`font-black text-base mb-2 line-clamp-2 ${
                     isDark ? 'text-white' : 'text-black'
-                  }`}>
+                  }`}
+                  style={{
+                        maxHeight: '1.5rem', // Limit the height of the title container
+                        overflowY: 'auto', // Enable vertical scrolling for overflow text
+                        scrollbarWidth: 'none' // Thin scrollbar for better aesthetics
+                      }}
+                  >
                     {pick.title}
-                  </h3>
+                  </div>
 
                   {/* Reason */}
-                  <p className={`text-sm mb-3 line-clamp-2 italic ${
+                  <div className={`text-sm mb-3 line-clamp-2 italic ${
                     isDark ? 'text-yellow-400/80' : 'text-yellow-600/80'
-                  }`}>
+                  }`}
+                  style={{
+                        maxHeight: '1.4rem', // Limit the height of the title container
+                        overflowX: 'auto', // Enable vertical scrolling for overflow text
+                        scrollbarWidth: 'none' // Thin scrollbar for better aesthetics
+                      }}>
                     "{pick.reason}"
-                  </p>
+                  </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="hidden sm:flex flex-wrap gap-2">
                     {pick.tags.slice(0, 3).map((tag, i) => (
                       <span
                         key={i}
@@ -376,6 +387,13 @@ export default function LibrarianPicks({ isDark }) {
             transform: translateY(0);
           }
         }
+          @keyframes scrollText {
+  0% { transform: translateX(100%); }
+  10% { transform: translateX(0); }
+  90% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
       `}</style>
     </div>
   );
