@@ -1,12 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import { Search, Moon, Sun, Menu, BookOpen, Tv, Book, X, User2, LibrarySquare } from 'lucide-react';
+import Login from './Login';
 
-export default function Header({ isDark, toggleTheme }) {
+export default function Header({ isDark, toggleTheme, onOpenLogin }) {
   const [searchValue, setSearchValue] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
+  const [showLogin, setShowLogin] = useState(false); // Show login modal
+  const navigate = useNavigate();
+
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
+    useEffect(() => {
+  const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsLoggedIn(true); // User is logged in
+    }
+  };
+
+  checkSession();
+
+  // Listen for auth state changes
+  const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      setIsLoggedIn(true); // User logged in
+    } else {
+      setIsLoggedIn(false); // User logged out
+    }
+  });
+
+  // Cleanup subscription on unmount
+  return () => {
+    authListener?.subscription?.unsubscribe();
+  };
+}, []);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true); // Set user as logged in
+    setShowLogin(false); // Close login modal
+  };
+
+  const randomEmoji = () => {
+    const emojis = ['😊', '😎', '🤓', '🎉', '👾', '🐱', '🌟'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  };
+  
   return (
     <div className={`transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-white'}`}>
       {/* Glassmorphism Header */}
@@ -21,7 +64,7 @@ export default function Header({ isDark, toggleTheme }) {
           {/* Desktop Layout */}
           <div className="hidden lg:flex items-center justify-between gap-8">
             {/* Logo */}
-            <div className="flex items-center gap-6 group cursor-pointer flex-shrink-0">
+            <Link to= "/" className="flex items-center gap-6 group cursor-pointer flex-shrink-0">
               <img
                 src={`${process.env.PUBLIC_URL}/logo192.png`} // Replace 'logo.png' with the actual file name in your public folder
                 alt="Otaku's Library Logo"
@@ -50,7 +93,7 @@ export default function Header({ isDark, toggleTheme }) {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl relative group">
@@ -117,23 +160,28 @@ export default function Header({ isDark, toggleTheme }) {
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Profile Button */}
                 <button
+                  onClick={() => {
+        if (isLoggedIn) navigate("/profile");
+        else onOpenLogin();
+      }}
                   className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                     isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
                   }`}
                   aria-label="Profile"
                 >
-                  <User2 size={20} /> {/* Replace with your desired icon */}
+                  {isLoggedIn ? randomEmoji() : <User2 size={20} />} {/* Show emoji if logged in */}
                 </button>
 
                 {/* Library Button */}
-                <button
+                <Link to="/library"
                   className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                     isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
                   }`}
                   aria-label="Library"
+                  
                 >
                   <LibrarySquare size={20} /> {/* Replace with your desired icon */}
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -143,7 +191,7 @@ export default function Header({ isDark, toggleTheme }) {
             {/* Top Row - Logo and Controls */}
             <div className="flex items-center justify-between mb-3">
               {/* Compact Logo */}
-              <div className="flex items-center gap-3 group cursor-pointer">
+              <Link to="/" className="flex items-center gap-3 group cursor-pointer">
                 <div className="relative flex items-center">
                   <img src={`${process.env.PUBLIC_URL}/logo192.png`} // Replace 'logo.png' with the actual file name in your public folder
                       alt="Otaku's Library Logo"
@@ -167,7 +215,7 @@ export default function Header({ isDark, toggleTheme }) {
                     ALL IN ONE
                   </span>
                 </div>
-              </div>
+              </Link>
 
               {/* Controls */}
               <div className="flex items-center gap-2 sm:gap-3">
@@ -194,23 +242,29 @@ export default function Header({ isDark, toggleTheme }) {
                 <div className="flex items-center gap-2 sm:gap-3">
                   {/* Profile Button */}
                   <button
+                    onClick={() => {
+        if (isLoggedIn) navigate("/profile");
+        else onOpenLogin();
+      }} // Open login modal
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                       isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
                     }`}
                     aria-label="Profile"
                   >
-                    <User2 size={20} /> {/* Replace with your desired icon */}
+                    {isLoggedIn ? randomEmoji() : <User2 size={20} />} {/* Show emoji if logged in */}
+                    
                   </button>
 
                   {/* Library Button */}
-                  <button
+                  <Link to="/library"
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                       isDark ? 'bg-white/5 text-white' : 'bg-black/5 text-black'
                     }`}
                     aria-label="Library"
+                    
                   >
                     <LibrarySquare size={20} /> {/* Replace with your desired icon */}
-                  </button>
+                  </Link>
                   </div>
               </div>
             </div>
@@ -273,8 +327,14 @@ export default function Header({ isDark, toggleTheme }) {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
-    
+      {/* Show Login Modal */}
+      {showLogin && (
+        <Login
+          isDark={isDark}
+          onLogin={handleLogin} // Existing login handler
+          onClose={() => setShowLogin(false)} // Close the modal
+        />
+      )}
 
       <style jsx>{`
         @keyframes slide {
