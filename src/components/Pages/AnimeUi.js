@@ -84,7 +84,7 @@ export default function AnimeUI() {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
       {/* Hero Section with Banner */}
-      <div className="relative h-[60vh] sm:h-[70vh] overflow-hidden group">
+      <div className="relative h-[80vh] sm:h-[100vh] overflow-hidden group">
         <div className="absolute inset-0">
           <img 
             src={animeData.banner || animeData.poster} 
@@ -600,4 +600,5 @@ export default function AnimeUI() {
       `}</style>
     </div>
   );
+
 }
