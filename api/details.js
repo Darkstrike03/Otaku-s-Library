@@ -13,7 +13,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get the last letter to determine table
     const lastLetter = uid.charAt(uid.length - 1).toUpperCase();
     
     const tableMapping = {
@@ -30,7 +29,6 @@ export default async function handler(req, res) {
       return res.status(404).send('Table not found');
     }
 
-    // Fetch from Supabase
     const { data: animeData, error } = await supabase
       .from(table)
       .select('*')
@@ -41,7 +39,6 @@ export default async function handler(req, res) {
       return res.status(404).send('Anime not found');
     }
 
-    // Generate meta tags HTML
     const synopsis = (animeData.synopsis || animeData.syn || 'Discover this amazing content').substring(0, 160);
     const image = animeData.banner || animeData.poster || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200';
 
