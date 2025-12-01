@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getJsonFile } from './Pages';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -6,7 +7,6 @@ import html2canvas from 'html2canvas';
 
 export default function AnimeUI() {
   const { uid } = useParams();
-  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(true);
   const [animeData, setAnimeData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +18,7 @@ export default function AnimeUI() {
   const [savingBookmark, setSavingBookmark] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [generatingCard, setGeneratingCard] = useState(false);
+  const navigate = useNavigate();
 
   // Get current user
   useEffect(() => {
@@ -53,8 +54,22 @@ export default function AnimeUI() {
   useEffect(() => {
     const loadAnimeData = async () => {
       setLoading(true);
+      const result = await getJsonFile(uid);
+      if (result) {
+        setAnimeData(result.item);
+      } else {
+        console.error('UID not found in any JSON file.');
+      }
+      setLoading(false);
+    };
+
+    loadAnimeData();
+  }, [uid]);
+
+  useEffect(() => {
+    const loadAnimeData = async () => {
+      setLoading(true);
       try {
-        // Use the new API endpoint instead of getJsonFile
         const response = await fetch(`/api/anime?uid=${uid}`);
         
         if (!response.ok) {
@@ -65,6 +80,9 @@ export default function AnimeUI() {
 
         const data = await response.json();
         setAnimeData(data);
+
+        // Update meta tags for SEO after data loads
+        updateMetaTags(data, uid);
       } catch (error) {
         console.error('Error fetching anime data:', error);
       } finally {
@@ -76,7 +94,39 @@ export default function AnimeUI() {
       loadAnimeData();
     }
   }, [uid]);
+   const updateMetaTags = (data, uid) => {
+    const synopsis = (data.synopsis || data.syn || 'Discover this amazing content').substring(0, 160);
+    const image = data.banner || data.poster || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200';
 
+    // Update title
+    document.title = `${data.title} | Otaku's Library`;
+
+    // Update or create meta tags
+    updateMetaTag('description', synopsis);
+    updateMetaTag('og:title', data.title);
+    updateMetaTag('og:description', synopsis);
+    updateMetaTag('og:image', image);
+    updateMetaTag('og:url', `https://www.otaku-s-library.vercel.app/details/${uid}`);
+    updateMetaTag('twitter:title', data.title);
+    updateMetaTag('twitter:description', synopsis);
+    updateMetaTag('twitter:image', image);
+  };
+
+  const updateMetaTag = (name, content) => {
+    let element = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`);
+    
+    if (!element) {
+      element = document.createElement('meta');
+      if (name.startsWith('og:') || name.startsWith('twitter:')) {
+        element.setAttribute('property', name);
+      } else {
+        element.setAttribute('name', name);
+      }
+      document.head.appendChild(element);
+    }
+    
+    element.setAttribute('content', content);
+  };
   // Helper function to parse JSON safely
   const parseJSON = (data) => {
     if (!data) return [];
@@ -479,7 +529,7 @@ export default function AnimeUI() {
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
       
       {/* Back Button - Fixed Position */}
-      <div className="fixed top-25 left-20 z-30 group">
+      <div className="fixed top-5 left-4 z-30 group">
         <button
           onClick={() => navigate(-1)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all hover:scale-110 transform ${
