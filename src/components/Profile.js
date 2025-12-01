@@ -5,6 +5,7 @@ import {
   User, Mail, Globe, Github, Twitter, Instagram, Sparkles, Crown, Target, BookOpen, X
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { getJsonFile } from './Pages/Pages'; // Import the getJsonFile function
 
 export default function Profile() {
   const [isDark, setIsDark] = useState(true);
@@ -14,6 +15,11 @@ export default function Profile() {
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [userData, setUserData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [favoritesData, setFavoritesData] = useState([]);
+  const [bookmarksData, setBookmarksData] = useState([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [loadingBookmarks, setLoadingBookmarks] = useState(false);
+  const [isOwner, setIsOwner] = useState(false); // Add owner state
   
   // Onboarding form state
   const [onboardingData, setOnboardingData] = useState({
@@ -29,6 +35,14 @@ export default function Profile() {
     checkUserAndLoadData();
   }, []);
 
+  // Fetch favorites and bookmarks data
+  useEffect(() => {
+    if (userData) {
+      fetchFavoritesData();
+      fetchBookmarksData();
+    }
+  }, [userData]);
+
   const checkUserAndLoadData = async () => {
     try {
       // Get current user
@@ -36,7 +50,7 @@ export default function Profile() {
       
       if (userError || !user) {
         console.error('No user logged in');
-        window.location.href = '/login'; // Redirect to login if not authenticated
+        window.location.href = '/login';
         return;
       }
 
@@ -96,7 +110,96 @@ export default function Profile() {
     }
   };
 
+  // Fetch actual data for favorites using UIDs
+  const fetchFavoritesData = async () => {
+    setLoadingFavorites(true);
+    try {
+      const { data } = await supabase
+        .from('user_data')
+        .select('favourites')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (data?.favourites) {
+        const uids = data.favourites.split(',').map(u => u.trim()).filter(u => u);
+        const favoriteItems = [];
+
+        for (const uid of uids) {
+          try {
+            const result = await getJsonFile(uid);
+            if (result) {
+              favoriteItems.push({
+                uid,
+                title: result.item.title,
+                poster: result.item.poster,
+                type: result.category,
+                rating: result.item.rating || 'N/A',
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching data for UID ${uid}:`, err);
+          }
+        }
+
+        setFavoritesData(favoriteItems);
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    } finally {
+      setLoadingFavorites(false);
+    }
+  };
+
+  // Fetch actual data for bookmarks using UIDs
+  const fetchBookmarksData = async () => {
+    setLoadingBookmarks(true);
+    try {
+      const { data } = await supabase
+        .from('user_data')
+        .select('bookmarks')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (data?.bookmarks) {
+        const uids = data.bookmarks.split(',').map(u => u.trim()).filter(u => u);
+        const bookmarkItems = [];
+
+        for (const uid of uids) {
+          try {
+            const result = await getJsonFile(uid);
+            if (result) {
+              bookmarkItems.push({
+                uid,
+                title: result.item.title,
+                poster: result.item.poster,
+                type: result.category,
+                episodes: result.item.episodes,
+                status: result.item.status,
+                rating: result.item.rating || 'N/A',
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching data for UID ${uid}:`, err);
+          }
+        }
+
+        setBookmarksData(bookmarkItems);
+      }
+    } catch (error) {
+      console.error('Error fetching bookmarks:', error);
+    } finally {
+      setLoadingBookmarks(false);
+    }
+  };
+
+  const checkIfOwner = (username) => {
+    return username?.toLowerCase() === 'otaku-s-librarian';
+  };
+
   const transformUserData = (data) => {
+    const owner = checkIfOwner(data.username);
+    setIsOwner(owner);
+    
     return {
       username: data.username || 'User',
       displayName: data.displayname || 'New User',
@@ -122,8 +225,6 @@ export default function Profile() {
         github: '',
         instagram: ''
       },
-      favorites: parseFavorites(data.favourites),
-      bookmarks: parseBookmarks(data.bookmarks),
     };
   };
 
@@ -131,24 +232,6 @@ export default function Profile() {
     if (!badgesString) return [];
     try {
       return JSON.parse(badgesString);
-    } catch {
-      return [];
-    }
-  };
-
-  const parseFavorites = (favoritesString) => {
-    if (!favoritesString) return [];
-    try {
-      return JSON.parse(favoritesString);
-    } catch {
-      return [];
-    }
-  };
-
-  const parseBookmarks = (bookmarksString) => {
-    if (!bookmarksString) return [];
-    try {
-      return JSON.parse(bookmarksString);
     } catch {
       return [];
     }
@@ -211,8 +294,8 @@ export default function Profile() {
 
       if (error) {
         console.error('Error updating user data:', error);
-  setOnboardingError('Failed to save profile. Please try again.');
-  return;
+        setOnboardingError('Failed to save profile. Please try again.');
+        return;
       }
 
       // Reload data and close modal
@@ -237,8 +320,8 @@ export default function Profile() {
   };
 
   const tabs = [
-    { id: 'favorites', label: 'Favorites', icon: Heart, count: userData?.favorites.length || 0 },
-    { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, count: userData?.bookmarks.length || 0 },
+    { id: 'favorites', label: 'Favorites', icon: Heart, count: favoritesData.length },
+    { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, count: bookmarksData.length },
     { id: 'activity', label: 'Activity', icon: TrendingUp, count: null },
     { id: 'stats', label: 'Statistics', icon: Award, count: null },
   ];
@@ -401,10 +484,25 @@ export default function Profile() {
       {/* Main Profile Content (only shows if userData is loaded) */}
       {userData && (
         <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'}`}>
-          {/* Rest of your existing profile JSX code here - I'll keep it as is */}
-          <div className="relative h-64 sm:h-80 overflow-hidden">
+          {/* Banner with Owner Indicator */}
+          <div className="relative h-64 sm:h-80 overflow-hidden group">
             <img src={userData.banner} alt="Banner" className="w-full h-full object-cover" />
             <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-t from-black via-black/60 to-transparent' : 'bg-gradient-to-t from-white via-white/60 to-transparent'}`}></div>
+            
+            {/* Owner Badge */}
+            {isOwner && (
+              <div className="absolute top-4 left-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-full blur-xl opacity-75 animate-pulse"></div>
+                  <div className={`relative px-4 py-2 rounded-full flex items-center gap-2 ${isDark ? 'bg-black/80' : 'bg-white/80'} backdrop-blur-xl border-2 border-yellow-500/50`}>
+                    <Crown size={18} className="text-yellow-400 animate-bounce" />
+                    <span className="text-sm font-black bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                      LIBRARY OWNER
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="absolute top-4 right-4 flex gap-2">
               <button className={`p-3 rounded-xl transition-all hover:scale-110 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}>
@@ -418,25 +516,68 @@ export default function Profile() {
 
           <div className="container mx-auto px-4 sm:px-6 -mt-20 relative z-10">
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end mb-8">
+              {/* Avatar with special styling for owner */}
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
-                <div className={`relative w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden border-4 ${isDark ? 'border-black' : 'border-white'} shadow-2xl`}>
+                {isOwner ? (
+                  <div className="absolute -inset-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-3xl blur-lg opacity-100 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
+                ) : (
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                )}
+                
+                <div className={`relative w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden border-4 ${isOwner ? 'border-yellow-500/80' : isDark ? 'border-black' : 'border-white'} shadow-2xl`}>
                   <img src={userData.avatar} alt={userData.username} className="w-full h-full object-cover" />
                   <button className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                     <Edit size={24} className="text-white" />
                   </button>
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-yellow-500 to-orange-500 text-white font-black text-lg shadow-lg">
+                
+                {/* Level Badge with special styling for owner */}
+                <div className={`absolute -bottom-2 -right-2 w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg ${
+                  isOwner 
+                    ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 animate-bounce' 
+                    : 'bg-gradient-to-br from-yellow-500 to-orange-500'
+                }`}>
                   {userData.level}
                 </div>
+
+                {/* Owner Crown Icon */}
+                {isOwner && (
+                  <div className="absolute -top-3 -right-3 animate-bounce">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-yellow-500 rounded-full blur-lg opacity-75"></div>
+                      <div className="relative bg-black/80 backdrop-blur-xl rounded-full p-1.5 border border-yellow-500/50">
+                        <Crown size={20} className="text-yellow-400" fill="currentColor" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <h1 className={`text-3xl sm:text-4xl font-black ${isDark ? 'text-white' : 'text-black'}`}>{userData.displayName}</h1>
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${isDark ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-purple-500/20 text-purple-600 border border-purple-500/30'}`}>
+                  <h1 className={`text-3xl sm:text-4xl font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                    {userData.displayName}
+                    {isOwner && <span className="ml-2 text-yellow-400">👑</span>}
+                  </h1>
+                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    isOwner
+                      ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/50'
+                      : isDark
+                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                      : 'bg-purple-500/20 text-purple-600 border border-purple-500/30'
+                  }`}>
                     @{userData.username}
                   </span>
+                  
+                  {/* Owner Status Badge */}
+                  {isOwner && (
+                    <div className={`px-4 py-1.5 rounded-full text-sm font-black flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 backdrop-blur-xl`}>
+                      <Crown size={16} className="text-yellow-400" fill="currentColor" />
+                      <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                        Library Creator
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {userData.badges.length > 0 && (
@@ -460,8 +601,20 @@ export default function Profile() {
                     { label: 'Days', value: userData.stats.daysSpent },
                     { label: 'Reviews', value: userData.stats.reviews },
                   ].map((stat, i) => (
-                    <div key={i} className={`px-4 py-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/5'} backdrop-blur-xl`}>
-                      <div className={`text-xl font-black ${isDark ? 'text-white' : 'text-black'}`}>{stat.value}</div>
+                    <div key={i} className={`px-4 py-2 rounded-xl ${
+                      isOwner
+                        ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30'
+                        : isDark
+                        ? 'bg-white/5'
+                        : 'bg-black/5'
+                    } backdrop-blur-xl`}>
+                      <div className={`text-xl font-black ${
+                        isOwner
+                          ? 'text-yellow-400'
+                          : isDark
+                          ? 'text-white'
+                          : 'text-black'
+                      }`}>{stat.value}</div>
                       <div className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>{stat.label}</div>
                     </div>
                   ))}
@@ -472,7 +625,9 @@ export default function Profile() {
                 <button
                   onClick={() => setIsEditMode(!isEditMode)}
                   className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 ${
-                    isEditMode
+                    isOwner
+                      ? 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white'
+                      : isEditMode
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                       : isDark
                       ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
@@ -497,7 +652,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Rest of profile content - keeping your existing code */}
+            {/* Rest of existing profile content */}
             <div className="grid lg:grid-cols-12 gap-8">
               <div className="lg:col-span-4 space-y-6">
                 <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
@@ -580,9 +735,15 @@ export default function Profile() {
                   })}
                 </div>
 
+                {/* Favorites Tab */}
                 {activeTab === 'favorites' && (
                   <div>
-                    {userData.favorites.length === 0 ? (
+                    {loadingFavorites ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className={isDark ? 'text-white/60' : 'text-black/60'}>Loading favorites...</p>
+                      </div>
+                    ) : favoritesData.length === 0 ? (
                       <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
                         <Heart size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
                         <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>No Favorites Yet</h3>
@@ -590,14 +751,15 @@ export default function Profile() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                        {userData.favorites.map((item) => (
-                          <div
-                            key={item.id}
+                        {favoritesData.map((item) => (
+                          <a 
+                            key={item.uid}
+                            href={`/anime/${item.uid}`}
                             className={`group relative rounded-2xl overflow-hidden transition-all hover:scale-105 cursor-pointer ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}
                           >
                             <div className="relative aspect-[3/4] overflow-hidden">
                               <img
-                                src={item.image}
+                                src={item.poster}
                                 alt={item.title}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                               />
@@ -616,86 +778,89 @@ export default function Profile() {
                             <div className="p-3">
                               <h4 className={`font-black text-sm line-clamp-2 ${isDark ? 'text-white' : 'text-black'}`}>{item.title}</h4>
                             </div>
-                          </div>
+                          </a>
                         ))}
                       </div>
                     )}
                   </div>
                 )}
 
-
-            {activeTab === 'bookmarks' && (
-              <div>
-                {userData.bookmarks.length === 0 ? (
-                  <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
-                    <Bookmark size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                    <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>No Bookmarks Yet</h3>
-                    <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Start bookmarking content to track your progress!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {userData.bookmarks.map((item) => (
-                      <div key={item.id} className={`group flex gap-4 p-4 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'bg-black/5 hover:bg-black/10 border border-black/10'} backdrop-blur-xl`}>
-                        <div className="relative w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden">
-                          <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <h4 className={`font-black text-base line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>{item.title}</h4>
-                              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase flex-shrink-0 bg-gradient-to-r ${getTypeColor(item.type)} text-white`}>{item.type}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`px-3 py-1 rounded-lg text-xs font-bold ${item.status === 'Watching' || item.status === 'Reading' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.status}</span>
-                              <span className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>{item.progress}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-black/10'}`}>
-                              <div className={`h-full bg-gradient-to-r ${getTypeColor(item.type)}`} style={{ width: `${(parseInt(item.progress.split('/')[0]) / parseInt(item.progress.split('/')[1])) * 100}%` }}></div>
-                            </div>
-                            <span className={`text-xs font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>{Math.round((parseInt(item.progress.split('/')[0]) / parseInt(item.progress.split('/')[1])) * 100)}%</span>
-                          </div>
-                        </div>
+                {/* Bookmarks Tab */}
+                {activeTab === 'bookmarks' && (
+                  <div>
+                    {loadingBookmarks ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className={isDark ? 'text-white/60' : 'text-black/60'}>Loading bookmarks...</p>
                       </div>
-                    ))}
+                    ) : bookmarksData.length === 0 ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                        <Bookmark size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                        <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>No Bookmarks Yet</h3>
+                        <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Start bookmarking content to track your progress!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {bookmarksData.map((item) => (
+                          <a 
+                            key={item.uid} 
+                            href={`/anime/${item.uid}`}
+                            className={`group flex gap-4 p-4 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'bg-black/5 hover:bg-black/10 border border-black/10'} backdrop-blur-xl`}
+                          >
+                            <div className="relative w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden">
+                              <img src={item.poster} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between">
+                              <div>
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <h4 className={`font-black text-base line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>{item.title}</h4>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase flex-shrink-0 bg-gradient-to-r ${getTypeColor(item.type)} text-white`}>{item.type}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className={`px-3 py-1 rounded-lg text-xs font-bold ${item.status === 'Ongoing' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{item.status}</span>
+                                  <span className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>{item.episodes} Episodes</span>
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'activity' && (
+                  <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                    <TrendingUp size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                    <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>Activity Feed</h3>
+                    <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Your recent activity will appear here</p>
+                  </div>
+                )}
+
+                {activeTab === 'stats' && (
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    {[
+                      { label: 'Total Watched', value: userData.stats.totalWatched, icon: Eye, gradient: 'from-purple-500 to-pink-500' },
+                      { label: 'Total Read', value: userData.stats.totalRead, icon: BookOpen, gradient: 'from-cyan-500 to-blue-500' },
+                      { label: 'Days Spent', value: userData.stats.daysSpent, icon: Clock, gradient: 'from-pink-500 to-rose-500' },
+                      { label: 'Reviews Written', value: userData.stats.reviews, icon: MessageCircle, gradient: 'from-yellow-500 to-orange-500' },
+                    ].map((stat, i) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div key={i} className={`rounded-2xl p-6 bg-gradient-to-br ${stat.gradient} bg-opacity-20 border ${isDark ? 'border-white/10' : 'border-black/10'} backdrop-blur-xl`}>
+                          <Icon size={32} className="text-white mb-4" />
+                          <div className={`text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r ${stat.gradient}`}>{stat.value}</div>
+                          <div className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-black/80'}`}>{stat.label}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            )}
-
-            {activeTab === 'activity' && (
-              <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
-                <TrendingUp size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>Activity Feed</h3>
-                <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Your recent activity will appear here</p>
-              </div>
-            )}
-
-            {activeTab === 'stats' && (
-              <div className="grid sm:grid-cols-2 gap-6">
-                {[
-                  { label: 'Total Watched', value: userData.stats.totalWatched, icon: Eye, gradient: 'from-purple-500 to-pink-500' },
-                  { label: 'Total Read', value: userData.stats.totalRead, icon: BookOpen, gradient: 'from-cyan-500 to-blue-500' },
-                  { label: 'Days Spent', value: userData.stats.daysSpent, icon: Clock, gradient: 'from-pink-500 to-rose-500' },
-                  { label: 'Reviews Written', value: userData.stats.reviews, icon: MessageCircle, gradient: 'from-yellow-500 to-orange-500' },
-                ].map((stat, i) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={i} className={`rounded-2xl p-6 bg-gradient-to-br ${stat.gradient} bg-opacity-20 border ${isDark ? 'border-white/10' : 'border-black/10'} backdrop-blur-xl`}>
-                      <Icon size={32} className="text-white mb-4" />
-                      <div className={`text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r ${stat.gradient}`}>{stat.value}</div>
-                      <div className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-black/80'}`}>{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  )}
-</>
-);
+      )}
+    </>
+  );
 }
