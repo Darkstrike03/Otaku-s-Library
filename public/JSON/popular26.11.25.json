@@ -71,6 +71,26 @@
       "rating": 8.0,
       "status": "Completed",
       "episodes": 127
+    },
+    {
+      "id": 9,
+      "uid":"9A",
+      "title": "Chainsaw Man",
+      "image": "https://i.ibb.co/5Wq00zMv/590c4b002caf4c849acc4796316e9393.jpg",
+      "rating": 8.8,
+      "status": "Completed",
+      "episodes": 12
+    },
+    {
+      {
+      "id": 10,
+      "uid":"10A",
+      "title": "Dan Da Dan",
+      "image": "https://i.ibb.co/GvHfzQkT/eb9e711d53bf9dc74f32e9ec2d5bcfed.jpg",
+      "rating": 8.4,
+      "status": "Completed",
+      "episodes": 12
+    }
     }
   ],
   "manga": [
@@ -292,3 +312,4 @@
     }
   ]
 }
+
