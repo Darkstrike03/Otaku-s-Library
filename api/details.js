@@ -95,6 +95,7 @@ export default async function handler(req, res) {
           
         </head>
         <body>
+          <div id="root"></div>
           <noscript>Loading...</noscript>
         </body>
       </html>
@@ -119,5 +120,6 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 
 }
+
 
 
