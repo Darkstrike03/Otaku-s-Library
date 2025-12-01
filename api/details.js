@@ -87,16 +87,6 @@ export default async function handler(req, res) {
               }
             }
           </script>
-          
-          <!-- Preload React app -->
-          <link rel="preload" href="/index.html" as="document" />
-          
-          <!-- Redirect to React app after bots crawl -->
-          <script>
-            if (typeof window !== 'undefined') {
-              window.location.href = '/details/${uid}';
-            }
-          </script>
         </head>
         <body>
           <noscript>Loading...</noscript>
