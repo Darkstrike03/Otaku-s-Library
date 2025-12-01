@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { getJsonFile } from './Pages';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -7,6 +6,7 @@ import html2canvas from 'html2canvas';
 
 export default function AnimeUI() {
   const { uid } = useParams();
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(true);
   const [animeData, setAnimeData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,6 @@ export default function AnimeUI() {
   const [savingBookmark, setSavingBookmark] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [generatingCard, setGeneratingCard] = useState(false);
-  const navigate = useNavigate();
 
   // Get current user
   useEffect(() => {
@@ -54,16 +53,28 @@ export default function AnimeUI() {
   useEffect(() => {
     const loadAnimeData = async () => {
       setLoading(true);
-      const result = await getJsonFile(uid);
-      if (result) {
-        setAnimeData(result.item);
-      } else {
-        console.error('UID not found in any JSON file.');
+      try {
+        // Use the new API endpoint instead of getJsonFile
+        const response = await fetch(`/api/anime?uid=${uid}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch anime data');
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        setAnimeData(data);
+      } catch (error) {
+        console.error('Error fetching anime data:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    loadAnimeData();
+    if (uid) {
+      loadAnimeData();
+    }
   }, [uid]);
 
   // Helper function to parse JSON safely
@@ -468,7 +479,7 @@ export default function AnimeUI() {
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
       
       {/* Back Button - Fixed Position */}
-      <div className="fixed top-5 left-4 z-30 group">
+      <div className="fixed top-25 left-20 z-30 group">
         <button
           onClick={() => navigate(-1)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all hover:scale-110 transform ${
@@ -1151,7 +1162,3 @@ export default function AnimeUI() {
   );
 
 }
-
-
-
-
