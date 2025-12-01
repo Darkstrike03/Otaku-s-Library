@@ -42,13 +42,14 @@ export default async function handler(req, res) {
     const synopsis = (animeData.synopsis || animeData.syn || 'Discover this amazing content').substring(0, 160);
     const image = animeData.banner || animeData.poster || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200';
 
+    // Build the React app HTML with meta tags injected
     const html = `
       <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>${escapeHtml(animeData.title)} | Otaku's Library</title>
+          <meta name="theme-color" content="#000000" />
           <meta name="description" content="${escapeHtml(synopsis)}" />
           <meta name="keywords" content="${animeData.type}, anime, manga, ${escapeHtml((animeData.genre || '').toString())}" />
           
@@ -60,6 +61,7 @@ export default async function handler(req, res) {
           <meta property="og:image" content="${image}" />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
+          <meta property="og:site_name" content="Otaku's Library" />
           
           <!-- Twitter -->
           <meta name="twitter:card" content="summary_large_image" />
@@ -67,6 +69,7 @@ export default async function handler(req, res) {
           <meta name="twitter:title" content="${escapeHtml(animeData.title)} | Otaku's Library" />
           <meta name="twitter:description" content="${escapeHtml(synopsis)}" />
           <meta name="twitter:image" content="${image}" />
+          <meta name="twitter:creator" content="@otakus_library" />
           
           <!-- Structured Data (JSON-LD) -->
           <script type="application/ld+json">
@@ -81,18 +84,27 @@ export default async function handler(req, res) {
                 "@type": "AggregateRating",
                 "ratingValue": "${animeData.rating || 0}",
                 "bestRating": "10"
+              },
+              "potentialAction": {
+                "@type": "WatchAction",
+                "target": "https://www.otaku-s-library.vercel.app/details/${uid}"
               }
             }
           </script>
+
+          <title>${escapeHtml(animeData.title)} | Otaku's Library</title>
+          <link rel="icon" href="/favicon.ico" />
+          <link rel="manifest" href="/manifest.json" />
         </head>
         <body>
-          <noscript>Loading...</noscript>
+          <div id="root"></div>
+          <script src="/static/js/main.js"></script>
         </body>
       </html>
     `;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return res.send(html);
   } catch (error) {
     console.error('Error:', error);
