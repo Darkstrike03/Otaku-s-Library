@@ -1,0 +1,14 @@
+{
+  "buildCommand": "cd olib && npm run build",
+  "outputDirectory": "olib/build",
+  "rewrites": [
+    {
+      "source": "/details/:uid",
+      "destination": "/api/details?uid=:uid"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
