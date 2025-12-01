@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getJsonFile } from './Pages';
-import { useParams } from 'react-router-dom';
-import { Star, Play, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import html2canvas from 'html2canvas';
 
@@ -18,6 +18,7 @@ export default function AnimeUI() {
   const [savingBookmark, setSavingBookmark] = useState(false);
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [generatingCard, setGeneratingCard] = useState(false);
+  const navigate = useNavigate();
 
   // Get current user
   useEffect(() => {
@@ -465,6 +466,23 @@ export default function AnimeUI() {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
+      
+      {/* Back Button - Fixed Position */}
+      <div className="fixed top-25 left-20 z-30 group">
+        <button
+          onClick={() => navigate(-1)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all hover:scale-110 transform ${
+            isDark
+              ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'
+          } backdrop-blur-xl shadow-lg hover:shadow-xl group-hover:gap-3`}
+          title="Go back"
+        >
+          <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
+          <span className="hidden sm:inline text-sm">Back</span>
+        </button>
+      </div>
+      
       {/* Hero Section with Banner */}
       <div className="relative h-[80vh] sm:h-[100vh] overflow-hidden group">
         <div className="absolute inset-0">
@@ -1113,7 +1131,7 @@ export default function AnimeUI() {
 
       {/* Custom CSS for animations */}
       <style>{`
-        @keyframes fade-in {
+         @keyframes fade-in {
           from {
             opacity: 0;
             transform: translateY(20px);
