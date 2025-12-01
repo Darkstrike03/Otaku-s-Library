@@ -82,14 +82,13 @@
       "episodes": 12
     },
     {
-      {
-      "id": 10,
-      "uid":"10A",
-      "title": "Dan Da Dan",
-      "image": "https://i.ibb.co/GvHfzQkT/eb9e711d53bf9dc74f32e9ec2d5bcfed.jpg",
-      "rating": 8.4,
-      "status": "Completed",
-      "episodes": 12
+    "id": 10,
+    "uid":"10A",
+    "title": "Dan Da Dan",
+    "image": "https://i.ibb.co/GvHfzQkT/eb9e711d53bf9dc74f32e9ec2d5bcfed.jpg",
+    "rating": 8.4,
+    "status": "Completed",
+    "episodes": 12
     }
   ],
   "manga": [
@@ -311,5 +310,6 @@
     }
   ]
 }
+
 
 
