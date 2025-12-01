@@ -468,7 +468,7 @@ export default function AnimeUI() {
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
       
       {/* Back Button - Fixed Position */}
-      <div className="fixed top-25 left-4 z-30 group">
+      <div className="fixed top-5 left-4 z-30 group">
         <button
           onClick={() => navigate(-1)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all hover:scale-110 transform ${
@@ -1151,6 +1151,7 @@ export default function AnimeUI() {
   );
 
 }
+
 
 
 
