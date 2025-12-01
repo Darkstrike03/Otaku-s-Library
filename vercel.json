@@ -3,14 +3,6 @@
   "outputDirectory": "build",
   "rewrites": [
     {
-      "source": "/details/:uid",
-      "destination": "/api/details?uid=:uid"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
       "source": "/:path*",
       "destination": "/index.html"
     }
