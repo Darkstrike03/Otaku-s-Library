@@ -43,7 +43,7 @@ export default async function handler(req, res) {
 
     // Generate meta tags HTML
     const synopsis = (animeData.synopsis || animeData.syn || 'Discover this amazing content').substring(0, 160);
-    const image = animeData.banner || animeData.poster || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200';
+    const image = animeData.poster || animeData.poster || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200';
 
     const html = `
       <!DOCTYPE html>
@@ -121,4 +121,5 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+
 }
