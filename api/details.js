@@ -92,11 +92,7 @@ export default async function handler(req, res) {
           <link rel="preload" href="/index.html" as="document" />
           
           <!-- Redirect to React app after bots crawl -->
-          <script>
-            if (navigator.userAgent.includes('Googlebot') || navigator.userAgent.includes('Bingbot')){
-            window.location.href = '/details/${uid}';
-            }
-          </script>
+          
         </head>
         <body>
           <noscript>Loading...</noscript>
@@ -123,4 +119,5 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 
 }
+
 
