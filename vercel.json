@@ -1,10 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "olib/build",
-  "env": {
-    "REACT_APP_SUPABASE_URL": "@react_app_supabase_url",
-    "REACT_APP_SUPABASE_ANON_KEY": "@react_app_supabase_anon_key"
-  },
+  "outputDirectory": "build",
   "rewrites": [
     {
       "source": "/details/:uid",
