@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getJsonFile } from './Pages';
 import { useParams } from 'react-router-dom';
-import { Star, Play, Calendar, Users, TrendingUp, Heart, BookmarkPlus, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle } from 'lucide-react';
+import { Star, Play, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
+import html2canvas from 'html2canvas';
 
 export default function AnimeUI() {
   const { uid } = useParams();
@@ -10,8 +12,43 @@ export default function AnimeUI() {
   const [loading, setLoading] = useState(true);
   const [showFullSynopsis, setShowFullSynopsis] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isInList, setIsInList] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [savingBookmark, setSavingBookmark] = useState(false);
+  const [savingFavorite, setSavingFavorite] = useState(false);
+  const [generatingCard, setGeneratingCard] = useState(false);
+
+  // Get current user
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        // Load bookmark and favorite status
+        await loadUserData(user.id);
+      }
+    };
+
+    getCurrentUser();
+  }, []);
+
+  // Load user's bookmarks and favorites
+  const loadUserData = async (userId) => {
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('bookmarks, favourites')
+      .eq('user_id', userId)
+      .single();
+
+    if (data) {
+      const bookmarks = data.bookmarks ? data.bookmarks.split(',').map(b => b.trim()) : [];
+      const favourites = data.favourites ? data.favourites.split(',').map(f => f.trim()) : [];
+
+      setIsBookmarked(bookmarks.includes(uid));
+      setIsFavorite(favourites.includes(uid));
+    }
+  };
 
   useEffect(() => {
     const loadAnimeData = async () => {
@@ -39,6 +76,334 @@ export default function AnimeUI() {
       }
     }
     return Array.isArray(data) ? data : [];
+  };
+
+  // Handle bookmark toggle
+  const handleBookmarkToggle = async () => {
+    if (!userId || !uid) {
+      console.error('User ID or UID missing');
+      return;
+    }
+
+    setSavingBookmark(true);
+
+    try {
+      // Get current bookmarks
+      const { data: userData, error: fetchError } = await supabase
+        .from('user_data')
+        .select('bookmarks')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching user data:', fetchError);
+        setSavingBookmark(false);
+        return;
+      }
+
+      let bookmarks = userData?.bookmarks ? userData.bookmarks.split(',').map(b => b.trim()) : [];
+
+      if (isBookmarked) {
+        // Remove from bookmarks
+        bookmarks = bookmarks.filter(b => b !== uid);
+      } else {
+        // Add to bookmarks
+        bookmarks.push(uid);
+      }
+
+      const bookmarksString = bookmarks.join(', ');
+
+      // Upsert user data
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .upsert(
+          {
+            user_id: userId,
+            bookmarks: bookmarksString,
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (updateError) {
+        console.error('Error updating bookmarks:', updateError);
+      } else {
+        setIsBookmarked(!isBookmarked);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setSavingBookmark(false);
+    }
+  };
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = async () => {
+    if (!userId || !uid) {
+      console.error('User ID or UID missing');
+      return;
+    }
+
+    setSavingFavorite(true);
+
+    try {
+      // Get current favorites
+      const { data: userData, error: fetchError } = await supabase
+        .from('user_data')
+        .select('favourites')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching user data:', fetchError);
+        setSavingFavorite(false);
+        return;
+      }
+
+      let favourites = userData?.favourites ? userData.favourites.split(',').map(f => f.trim()) : [];
+
+      if (isFavorite) {
+        // Remove from favorites
+        favourites = favourites.filter(f => f !== uid);
+      } else {
+        // Add to favorites
+        favourites.push(uid);
+      }
+
+      const favouritesString = favourites.join(', ');
+
+      // Upsert user data
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .upsert(
+          {
+            user_id: userId,
+            favourites: favouritesString,
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (updateError) {
+        console.error('Error updating favorites:', updateError);
+      } else {
+        setIsFavorite(!isFavorite);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    } finally {
+      setSavingFavorite(false);
+    }
+  };
+
+  const handleShareCard = async () => {
+    setGeneratingCard(true);
+    try {
+      // Create a temporary card element
+      const cardElement = document.createElement('div');
+      cardElement.id = 'share-card-temp';
+      cardElement.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        width: 1200px;
+        height: 630px;
+        background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%);
+        display: flex;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+
+      cardElement.innerHTML = `
+        <div style="position: relative; width: 100%; height: 100%; display: flex;">
+          {/* Banner Background */}
+          <div style="position: absolute; inset: 0; opacity: 0.3;">
+            <img src="${animeData.banner || animeData.poster}" alt="banner" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+
+          {/* Dark Overlay */}
+          <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(26,26,46,0.9) 100%);"></div>
+
+          {/* Content */}
+          <div style="position: relative; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 40px; z-index: 10;">
+            {/* Left Side - Poster */}
+            <div style="flex-shrink: 0; margin-right: 40px;">
+              <img 
+                src="${animeData.poster}" 
+                alt="poster" 
+                style="
+                  width: 280px;
+                  height: 400px;
+                  border-radius: 20px;
+                  box-shadow: 0 20px 60px rgba(168, 85, 247, 0.5);
+                  border: 4px solid rgba(168, 85, 247, 0.5);
+                  object-fit: cover;
+                "
+              />
+            </div>
+
+            {/* Right Side - Info */}
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; color: white;">
+              {/* Title */}
+              <h1 style="
+                font-size: 48px;
+                font-weight: 900;
+                margin: 0;
+                margin-bottom: 15px;
+                background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                max-width: 90%;
+              ">
+                ${animeData.title}
+              </h1>
+
+              {/* Japanese Name */}
+              ${animeData.jp_name ? `
+                <p style="
+                  font-size: 18px;
+                  color: rgba(168, 85, 247, 0.8);
+                  margin: 0;
+                  margin-bottom: 20px;
+                ">
+                  ${animeData.jp_name}
+                </p>
+              ` : ''}
+
+              {/* Info Row */}
+              <div style="display: flex; gap: 30px; margin-bottom: 25px; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Status</span>
+                  <span style="font-size: 18px; font-weight: bold; color: ${animeData.status === 'Ongoing' ? '#22c55e' : '#3b82f6'};">
+                    ${animeData.status || 'Unknown'}
+                  </span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Episodes</span>
+                  <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">
+                    ${animeData.episodes || '?'}
+                  </span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Rating</span>
+                  <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">
+                    ⭐ ${animeData.rating || 'N/A'}
+                  </span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Type</span>
+                  <span style="font-size: 18px; font-weight: bold; color: #06b6d4;">
+                    ${animeData.type || 'Unknown'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Genres */}
+              ${genres.length > 0 ? `
+                <div style="margin-bottom: 25px;">
+                  <p style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold; margin: 0 0 10px 0;">Genres</p>
+                  <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    ${genres.map(g => `
+                      <span style="
+                        background: rgba(168, 85, 247, 0.2);
+                        border: 1px solid rgba(168, 85, 247, 0.5);
+                        color: #a78bfa;
+                        padding: 6px 12px;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: bold;
+                      ">
+                        ${typeof g === 'string' ? g : g.name || g}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              {/* Website Link */}
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+                border: 2px solid rgba(168, 85, 247, 0.5);
+                border-radius: 12px;
+                margin-top: auto;
+                width: fit-content;
+              ">
+                <span style="font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.7);">Check it out:</span>
+                <span style="font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                  www.otaku-s-library.vercel.app
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Watermark */}
+          <div style="
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            font-size: 14px;
+            color: rgba(168, 85, 247, 0.6);
+            font-weight: bold;
+          ">
+            Otaku's Library
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(cardElement);
+
+      // Generate canvas from the element
+      const canvas = await html2canvas(cardElement, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      // Convert canvas to blob and share
+      canvas.toBlob(async (blob) => {
+        try {
+          // Check if Web Share API is available
+          if (navigator.share && navigator.canShare({ files: [new File([blob], 'anime-card.png', { type: 'image/png' })] })) {
+            await navigator.share({
+              files: [new File([blob], `${animeData.title}-card.png`, { type: 'image/png' })],
+              title: `Check out ${animeData.title}!`,
+              text: `Discovered this amazing anime on Otaku's Library!`,
+            });
+          } else {
+            // Fallback: Download the image
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${animeData.title}-card.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+        } catch (error) {
+          console.error('Share failed:', error);
+          // Fallback: Download
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${animeData.title}-card.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } finally {
+          document.body.removeChild(cardElement);
+          setGeneratingCard(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error generating share card:', error);
+      setGeneratingCard(false);
+    }
   };
 
   if (loading) {
@@ -69,6 +434,7 @@ export default function AnimeUI() {
     { id: 'themes', label: 'Themes', icon: Music },
     { id: 'characters', label: 'Characters', icon: Users },
     { id: 'relations', label: 'Relations', icon: Sparkles },
+    { id: 'contributors', label: 'Contributors', icon: User },
     { id: 'streaming', label: 'Streaming', icon: Globe },
   ];
 
@@ -80,6 +446,22 @@ export default function AnimeUI() {
   const prequel = parseJSON(animeData.prequel);
   const sequel = parseJSON(animeData.sequel);
   const sideStory = parseJSON(animeData.side_story);
+  const contributors = parseJSON(animeData.contributers) || [];
+
+  // Create a helper function to check if contributor is "The Librarian"
+  const isLibrarianContributor = (contributor) => {
+    if (typeof contributor === 'string') {
+      return contributor.toLowerCase() === 'the librarian';
+    }
+    if (typeof contributor === 'object' && contributor !== null) {
+      return (
+        contributor.username?.toLowerCase() === 'the librarian' || 
+        contributor.name?.toLowerCase() === 'the librarian' ||
+        contributor.displayName?.toLowerCase() === 'the librarian'
+      );
+    }
+    return false;
+  };
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-hidden`}>
@@ -175,27 +557,35 @@ export default function AnimeUI() {
                     Watch Now
                   </button>
                   <button
-                    onClick={() => setIsInList(!isInList)}
+                    onClick={handleBookmarkToggle}
+                    disabled={savingBookmark}
                     className={`px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 flex items-center gap-2 transform ${
-                      isInList
+                      isBookmarked
                         ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white'
                         : isDark
                         ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
                         : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'
-                    } backdrop-blur-xl`}
+                    } backdrop-blur-xl disabled:opacity-50`}
                   >
-                    <BookmarkPlus size={20} />
-                    {isInList ? 'In My List' : 'Add to List'}
+                    <Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} />
+                    {savingBookmark ? 'Saving...' : isBookmarked ? 'Bookmarked' : 'Bookmark'}
                   </button>
                   <button
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={handleFavoriteToggle}
+                    disabled={savingFavorite}
                     className={`p-3 rounded-xl transition-all hover:scale-110 transform ${
                       isFavorite ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white' : isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'
-                    } backdrop-blur-xl`}
+                    } backdrop-blur-xl disabled:opacity-50`}
+                    disabled={savingFavorite}
                   >
                     <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
                   </button>
-                  <button className={`p-3 rounded-xl transition-all hover:scale-110 transform ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}>
+                  <button 
+                    onClick={handleShareCard}
+                    disabled={generatingCard}
+                    className={`p-3 rounded-xl transition-all hover:scale-110 transform ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl disabled:opacity-50`}
+                    title="Share this anime"
+                  >
                     <Share2 size={20} />
                   </button>
                 </div>
@@ -575,6 +965,147 @@ export default function AnimeUI() {
                   )}
                 </div>
               )}
+
+              {/* Contributors Tab */}
+  {activeTab === 'contributors' && (
+    <div className="space-y-6">
+      {/* Lib Talks Section */}
+      {animeData.lib_talks && (
+        <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl`}>
+          <div className="flex items-center gap-3 mb-4">
+            <MessageSquare size={24} className="text-cyan-400" />
+            <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-black'}`}>Librarian's Notes</h3>
+          </div>
+          <div className={`p-4 rounded-xl ${isDark ? 'bg-cyan-500/10 border-l-4 border-cyan-500' : 'bg-cyan-500/10 border-l-4 border-cyan-500'}`}>
+            <p className={`text-base leading-relaxed ${isDark ? 'text-cyan-100' : 'text-cyan-900'}`}>
+              {animeData.lib_talks}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Contributors Section */}
+      <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl`}>
+        <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
+          <Users size={24} className="text-purple-400" />
+          Contributors
+        </h3>
+
+        {contributors.length > 0 ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {contributors.map((contributor, i) => {
+              const isLibrarian = typeof contributor === 'string' 
+                ? contributor.toLowerCase() === 'the librarian'
+                : contributor.username?.toLowerCase() === 'the librarian' || contributor.toLowerCase() === 'the librarian';
+
+              return (
+                <div
+                  key={i}
+                  className={`relative rounded-xl p-4 transition-all hover:scale-105 cursor-pointer ${
+                    isLibrarian
+                      ? isDark
+                        ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20'
+                        : 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20'
+                      : isDark
+                      ? 'bg-white/5 border border-white/10 hover:border-purple-500/50'
+                      : 'bg-black/5 border border-black/10 hover:border-purple-500/50'
+                  } backdrop-blur-xl`}
+                >
+                  {/* Librarian Badge */}
+                  {isLibrarian && (
+                    <div className="absolute -top-2 -right-2">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur animate-pulse"></div>
+                        <div className={`relative rounded-full p-2 ${isDark ? 'bg-black' : 'bg-white'}`}>
+                          <Crown size={16} className="text-yellow-500" fill="currentColor" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-3">
+                    <div className={`p-3 rounded-lg ${
+                      isLibrarian
+                        ? 'bg-gradient-to-br from-yellow-500/30 to-orange-500/30'
+                        : isDark
+                        ? 'bg-purple-500/20'
+                        : 'bg-purple-500/20'
+                    }`}>
+                      <User size={20} className={isLibrarian ? 'text-yellow-400' : 'text-purple-400'} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-bold text-sm mb-1 ${
+                        isLibrarian
+                          ? 'text-yellow-300'
+                          : isDark
+                          ? 'text-white'
+                          : 'text-black'
+                      }`}>
+                        {typeof contributor === 'string' ? contributor : contributor.username || contributor.name || contributor}
+                      </h4>
+                      {isLibrarian && (
+                        <p className={`text-xs ${isDark ? 'text-yellow-400/60' : 'text-yellow-600/60'}`}>
+                          Owner & Curator
+                        </p>
+                      )}
+                      {contributor.role && !isLibrarian && (
+                        <p className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                          {contributor.role}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Contribution indicator */}
+                  {isLibrarian && (
+                    <div className="mt-3 pt-3 border-t border-yellow-500/30">
+                      <div className="flex items-center gap-2">
+                        <div className="w-full bg-yellow-500/20 rounded-full h-1">
+                          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full" style={{ width: '100%' }}></div>
+                        </div>
+                        <span className="text-xs font-bold text-yellow-400">100%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className={`rounded-xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+            <Users size={48} className={`mx-auto mb-4 opacity-50 ${isDark ? 'text-white' : 'text-black'}`} />
+            <p className={isDark ? 'text-white/60' : 'text-black/60'}>No contributors yet</p>
+          </div>
+        )}
+      </div>
+
+      {/* Contribution Stats */}
+      {contributors.length > 0 && (
+        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20' : 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20'} backdrop-blur-xl`}>
+          <h4 className={`text-lg font-black mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Contribution Stats</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+              <p className={`text-2xl font-black ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{contributors.length}</p>
+              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Total Contributors</p>
+            </div>
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+              <p className={`text-2xl font-black ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                {contributors.filter(c => isLibrarianContributor(c)).length}
+              </p>
+              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Curated By</p>
+            </div>
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+              <p className={`text-2xl font-black ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>
+                {contributors.filter(c => !isLibrarianContributor(c)).length}
+              </p>
+              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Community</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
             </div>
           </div>
         </div>
