@@ -82,13 +82,13 @@
       "episodes": 12
     },
     {
-    "id": 10,
-    "uid":"10A",
-    "title": "Dan Da Dan",
-    "image": "https://i.ibb.co/GvHfzQkT/eb9e711d53bf9dc74f32e9ec2d5bcfed.jpg",
-    "rating": 8.4,
-    "status": "Completed",
-    "episodes": 12
+      "id": 10,
+      "uid":"10A",
+      "title": "Dan Da Dan",
+      "image": "https://i.ibb.co/GvHfzQkT/eb9e711d53bf9dc74f32e9ec2d5bcfed.jpg",
+      "rating": 8.4,
+      "status": "Completed",
+      "episodes": 12
     }
   ],
   "manga": [
@@ -110,9 +110,10 @@
     },
     {
       "id": 3,
+      "uid":"1M",
       "title": "Chainsaw Man",
-      "image": "https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=400",
-      "rating": 8.9,
+      "image": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx105778-euxXZEIfDY2u.png",
+      "rating": 8.5,
       "status": "Completed",
       "chapters": 97
     },
@@ -310,6 +311,3 @@
     }
   ]
 }
-
-
-

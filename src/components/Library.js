@@ -48,16 +48,27 @@ export default function Library() {
 
   // Fetch data from Supabase
   const loadLibraryData = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('Ani_data') // Table name
-        .select('uid, title, poster, rating, status, episodes, main_gen, genre, synopsis'); // Select relevant columns
+  setLoading(true);
+  try {
+    const tables = [
+      { name: 'Ani_data', category: 'anime', hasEpisodes: true },
+      { name: 'Manga_data', category: 'manga', hasEpisodes: false },
+    ];
 
-      if (error) {
-        console.error('Error fetching data:', error);
-        setLibraryData(getDemoData()); // Fallback to demo data
-      } else {
+    let allData = [];
+
+    // Fetch from all tables
+    for (const table of tables) {
+      // Select different columns based on table type
+      const columns = table.hasEpisodes 
+        ? 'uid, title, poster, rating, status, episodes, main_gen, genre, synopsis'
+        : 'uid, title, poster, rating, status, chapters, main_gen, genre, synopsis';
+
+      const { data, error } = await supabase
+        .from(table.name)
+        .select(columns);
+
+      if (!error && data) {
         const formattedData = data.map((item) => ({
           id: item.uid,
           title: item.title || 'Unknown Title',
@@ -65,18 +76,25 @@ export default function Library() {
           rating: item.rating || 'N/A',
           status: item.status || 'Unknown',
           episodes: item.episodes || 0,
-          main_gen: item.main_gen || 'Unknown Genre', // Use main_gen for the card
-          genre: Array.isArray(item.genre) ? item.genre.join(', ') : 'Unknown Genre', // Use genre for expanded view
+          chapters: item.chapters || 0,
+          main_gen: item.main_gen || 'Unknown Genre',
+          genre: Array.isArray(item.genre) ? item.genre.join(', ') : item.genre || 'Unknown Genre',
           synopsis: item.synopsis || 'No synopsis available.',
+          category: table.category,
         }));
-        setLibraryData(formattedData);
+        allData = [...allData, ...formattedData];
+      } else {
+        console.error(`Error fetching from ${table.name}:`, error);
       }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setLibraryData(getDemoData()); // Fallback to demo data
     }
-    setLoading(false);
-  };
+
+    setLibraryData(allData.length > 0 ? allData : getDemoData());
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    setLibraryData(getDemoData());
+  }
+  setLoading(false);
+};
 
   const getDemoData = () => {
     const demoItems = [];

@@ -1,18 +1,44 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Home from './components/home/Home';
 import Library from './components/Library';
 import Profile from './components/Profile';
-import Home from './components/home/Home';
+import Login from './components/Login';
 import AnimeUI from './components/Pages/AnimeUi';
-import Login from './components/Login'; // ⬅️ import Login
+import MangaUI from './components/Pages/MangaUI';
+
+// Router component that checks UID and routes to correct component
+function DetailPageRouter() {
+  const { uid } = useParams();
+  
+  if (!uid) {
+    return <div className="text-white text-center mt-10">Invalid UID</div>;
+  }
+  
+  const lastLetter = uid.charAt(uid.length - 1).toUpperCase();
+
+  switch (lastLetter) {
+    case 'A':
+      return <AnimeUI />;
+    case 'M':
+      return <MangaUI />;
+    case 'H':
+      return <AnimeUI />; // Replace with ManhwaUI when ready
+    case 'U':
+      return <AnimeUI />; // Replace with ManhuaUI when ready
+    case 'D':
+      return <AnimeUI />; // Replace with DonghuaUI when ready
+    case 'W':
+      return <AnimeUI />; // Replace with WebnovelUI when ready
+    default:
+      return <AnimeUI />;
+  }
+}
 
 export default function App() {
   const [isDark, setIsDark] = useState(true);
-
-  // AUTH STATE
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
@@ -20,30 +46,27 @@ export default function App() {
 
   return (
     <Router>
-      {/* HEADER */}
       <Header 
         isDark={isDark} 
         toggleTheme={toggleTheme}
-        isLoggedIn={isLoggedIn}                // ⬅️ give login state to Header
-        onOpenLogin={() => setShowLogin(true)} // ⬅️ tell Header how to open modal
+        isLoggedIn={isLoggedIn}
+        onOpenLogin={() => setShowLogin(true)}
       />
 
-      {/* LOGIN MODAL */}
       {showLogin && (
         <Login
           isDark={isDark}
           onLogin={() => {
-            setIsLoggedIn(true);  // ⬅️ mark user as logged in
-            setShowLogin(false);  // ⬅️ close modal
+            setIsLoggedIn(true);
+            setShowLogin(false);
           }}
           onClose={() => setShowLogin(false)}
         />
       )}
 
-      {/* ROUTES */}
       <Routes>
-        <Route path="/" element={<Home isDark={isDark} toggleTheme={toggleTheme}/>} />
-        <Route path="/details/:uid" element={<AnimeUI />} />
+        <Route path="/" element={<Home isDark={isDark} toggleTheme={toggleTheme} />} />
+        <Route path="/details/:uid" element={<DetailPageRouter />} />
         <Route path="/library" element={<Library isDark={isDark} />} />
         <Route path="/profile" element={<Profile isDark={isDark} />} />
       </Routes>
