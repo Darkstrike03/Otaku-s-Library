@@ -28,9 +28,9 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: item.title,
       description: synopsis.substring(0, 200),
-      images: item.banner ? [
+      images: item.poster ? [
         {
-          url: item.banner,
+          url: item.poster,
           width: 1200,
           height: 630,
           alt: item.title,
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: item.title,
       description: synopsis.substring(0, 200),
-      images: item.banner ? [item.banner] : [],
+      images: item.poster ? [item.poster] : [],
     },
   };
 }
