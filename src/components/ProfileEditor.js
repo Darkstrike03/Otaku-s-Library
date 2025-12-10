@@ -57,18 +57,15 @@ const [editData, setEditData] = useState({
       return;
     }
 
-    if (!editData.email.trim()) {
-      setError('Email is required');
-      setSaving(false);
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(editData.email)) {
-      setError('Please enter a valid email address');
-      setSaving(false);
-      return;
+    // Remove email validation - it's now optional
+    // Validate email format only if provided
+    if (editData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(editData.email)) {
+        setError('Please enter a valid email address');
+        setSaving(false);
+        return;
+      }
     }
 
     try {
@@ -258,7 +255,7 @@ const [editData, setEditData] = useState({
           {/* Email */}
           <div>
             <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
-              Email *
+              Email 
             </label>
             <input
               type="email"
