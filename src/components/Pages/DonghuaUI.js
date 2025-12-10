@@ -12,6 +12,7 @@ import {
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
+import ReviewSection from '../ReviewSection';
 
 export default function DonghuaUI({isDark = true}) {
   const { uid } = useParams();
@@ -29,11 +30,16 @@ export default function DonghuaUI({isDark = true}) {
   const [showContentWarnings, setShowContentWarnings] = useState(false);
   const [relatedWorks, setRelatedWorks] = useState([]);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [currentUser, setCurrentUser]= useState(null);
 
   useEffect(() => {
     const getCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id);
+      if (user){
+              setUserId(user?.id);
+              setCurrentUser(user);
+              await loadUserData(user?.id);
+      }
     };
     getCurrentUser();
   }, []);
@@ -482,7 +488,7 @@ export default function DonghuaUI({isDark = true}) {
       {/* Hero Section with Vertical Layout */}
       <div className={`relative min-h-[600px] overflow-hidden ${isDark ? 'bg-gradient-to-br from-green-950/20 via-black to-black' : 'bg-gradient-to-br from-green-50 via-white to-white'}`}>
         {/* Hero Section with Vertical Layout */}
-  {/* Banner Background */}
+        {/* Banner Background */}
         {donghuaData.banner && (
             <img
             src={donghuaData.banner}
@@ -794,30 +800,30 @@ export default function DonghuaUI({isDark = true}) {
           </div>
         )}
         {/* Source Work */}
-{activeTab === 'sourcework' && (
-  <div>
-    {relatedWorks && relatedWorks.title ? (
-      <div className={`p-8 rounded-3xl ${isDark ? 'bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-500/30' : 'bg-gradient-to-br from-blue-600/5 to-purple-600/5 border border-blue-500/20'}`}>
-        <h3 className={`text-2xl font-black mb-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-          {relatedWorks.type || 'Source Work'}
-        </h3>
-        <p className={`mb-4 ${isDark ? 'text-white/80' : 'text-black/80'}`}>
-          {relatedWorks.title}
-        </p>
-        {relatedWorks.synopsis && (
-          <p className={`${isDark ? 'text-white/70' : 'text-black/70'} whitespace-pre-wrap`}>
-            {relatedWorks.synopsis}
-          </p>
+        {activeTab === 'sourcework' && (
+          <div>
+            {relatedWorks && relatedWorks.title ? (
+              <div className={`p-8 rounded-3xl ${isDark ? 'bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-blue-500/30' : 'bg-gradient-to-br from-blue-600/5 to-purple-600/5 border border-blue-500/20'}`}>
+                <h3 className={`text-2xl font-black mb-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                  {relatedWorks.type || 'Source Work'}
+                </h3>
+                <p className={`mb-4 ${isDark ? 'text-white/80' : 'text-black/80'}`}>
+                  {relatedWorks.title}
+                </p>
+                {relatedWorks.synopsis && (
+                  <p className={`${isDark ? 'text-white/70' : 'text-black/70'} whitespace-pre-wrap`}>
+                    {relatedWorks.synopsis}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className={`text-center py-16 rounded-3xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                <BookOpen size={48} className={`mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
+                <p className={`font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>No source work linked</p>
+              </div>
+            )}
+          </div>
         )}
-      </div>
-    ) : (
-      <div className={`text-center py-16 rounded-3xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-        <BookOpen size={48} className={`mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
-        <p className={`font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>No source work linked</p>
-      </div>
-    )}
-  </div>
-)}
 
         {/* Characters */}
         {activeTab === 'characters' && (
@@ -1063,6 +1069,34 @@ export default function DonghuaUI({isDark = true}) {
           </div>
         )}
       </div>
+      {/* At the bottom of your content */}
+<div className={`mt-6`}>    
+  <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="donghua" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh anime data when reviews change
+      const fetchDonghuaData = async () => {
+        const { data, error } = await supabase
+          .from('Donghua_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setDonghuaData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
     </div>
   );
 }

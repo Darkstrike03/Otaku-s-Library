@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
+import ReviewSection from '../ReviewSection';
 
 export default function NovelUI({ isDark = true }) {
   const { uid } = useParams();
@@ -37,14 +38,17 @@ export default function NovelUI({ isDark = true }) {
   });
   const [selectedTab, setSelectedTab] = useState('overview');
   const [showContentWarning, setShowContentWarning] = useState(false);
-useEffect(() => {
+
+ useEffect(() => {
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
   };
   fetchUser();
 }, []);
-  useEffect(() => {
+
+  // ✅ KEEP ONLY THIS ONE checkStatus useEffect
+useEffect(() => {
   if (!currentUser || !novelData) return;
 
   const checkStatus = async () => {
@@ -144,34 +148,6 @@ useEffect(() => {
     fetchNovelData();
   }, [uid, router]);
 
-  useEffect(() => {
-    if (!currentUser || !novelData) return;
-
-    const checkStatus = async () => {
-      try {
-        const { data: favData } = await supabase
-          .from('favorites')
-          .select('uid')
-          .eq('user_id', currentUser.id)
-          .eq('item_uid', uid)
-          .single();
-
-        const { data: bookmarkData } = await supabase
-          .from('bookmarks')
-          .select('uid')
-          .eq('user_id', currentUser.id)
-          .eq('item_uid', uid)
-          .single();
-
-        setIsFavorite(!!favData);
-        setIsBookmarked(!!bookmarkData);
-      } catch (error) {
-        console.error('Error checking status:', error);
-      }
-    };
-
-    checkStatus();
-  }, [currentUser, uid, novelData]);
 
   if (loading) {
     return (
@@ -1010,6 +986,33 @@ useEffect(() => {
           </div>
         </div>
       )}
+      <div className={`mt-6 p-4 md-6 lg:8 rounded-lg sm:rounded-xl md:rounded-2xl border-t ${isDark ? 'border-indigo-700/30' : 'border-gray-300'}`}>    
+                  <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="novel" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh novel data when reviews change
+      const fetchNovelData = async () => {
+        const { data, error } = await supabase
+          .from('Webnovel_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setNovelData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
     </div>
   );
 }

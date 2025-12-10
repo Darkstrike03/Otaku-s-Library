@@ -972,6 +972,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
           </div>
         </div>
       )}
+
 {showProfileEditor && (
   <ProfileEditor
     isDark={isDark}
@@ -992,4 +993,3 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
     </>
   );
 }
-

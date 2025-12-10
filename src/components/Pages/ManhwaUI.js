@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
+import ReviewSection from '../ReviewSection';
 
 export default function ManhwaUI({ isDark = true }) {
   const { uid } = useParams();
@@ -42,6 +43,17 @@ export default function ManhwaUI({ isDark = true }) {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => async () =>{
+    const getCurrentUser = async () => {
+      const { data: {user}} = await supabase.auth.getUser();
+      if(user){
+        setUserId(user.id);
+        await loadUserData(user.id);
+      }
+    };
+    getCurrentUser();
+  },[]);
 
   // Fetch manhwa data with all related items
   useEffect(() => {
@@ -848,6 +860,33 @@ export default function ManhwaUI({ isDark = true }) {
           </div>
         </div>
       )}
+      <div className={`mt-6 p=4 mb-6`}>    
+                  <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="manhwa" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh anime data when reviews change
+      const fetchmanhwaData = async () => {
+        const { data, error } = await supabase
+          .from('Manhwa_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setManhwaData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
     </div>
   );
 }

@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { getJsonFile } from '@/lib/pages';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User } from 'lucide-react';
+import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User, ChevronRight } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import html2canvas from 'html2canvas';
+import ReviewSection from '../ReviewSection';
 
 export default function AnimeUI({isDark = true}) {
   const { uid } = useParams();
@@ -21,6 +22,8 @@ export default function AnimeUI({isDark = true}) {
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [generatingCard, setGeneratingCard] = useState(false);
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -35,6 +38,27 @@ export default function AnimeUI({isDark = true}) {
 
     getCurrentUser();
   }, []);
+
+  useEffect(() => {
+  const fetchAnimeData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('Ani_data')
+        .select('*')
+        .eq('uid', uid)
+        .single();
+
+      if (error) throw error;
+      setAnimeData(data);
+    } catch (err) {
+      console.error('Error fetching anime data:', err);
+    }
+  };
+
+  if (uid) {
+    fetchAnimeData();
+  }
+}, [uid]);
 
   // Load user's bookmarks and favorites
   const loadUserData = async (userId) => {
@@ -68,7 +92,19 @@ export default function AnimeUI({isDark = true}) {
     loadAnimeData();
   }, [uid]);
 
-  
+  useEffect(() => {
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentUser(user);
+      setUserId(user.id);
+      // Load bookmark and favorite status
+      await loadUserData(user.id);
+    }
+  };
+
+  getCurrentUser();
+}, []);
   
   // Helper function to parse JSON safely
   const parseJSON = (data) => {
@@ -201,212 +237,35 @@ export default function AnimeUI({isDark = true}) {
 
   const handleShareCard = async () => {
     setGeneratingCard(true);
+    
     try {
-      // Create a temporary card element
-      const cardElement = document.createElement('div');
-      cardElement.id = 'share-card-temp';
-      cardElement.style.cssText = `
-        position: fixed;
-        left: -9999px;
-        top: -9999px;
-        width: 1200px;
-        height: 630px;
-        background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%);
-        display: flex;
-        overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      `;
+      // Create share text with details
+      const shareText = `🎬 Check out: ${animeData.title}
+⭐ Rating: ${animeData.rating || 'N/A'}
+📺 Episodes: ${animeData.episodes || '?'}
+📅 Status: ${animeData.status}
+🎭 Type: ${animeData.type}
 
-      cardElement.innerHTML = `
-        <div style="position: relative; width: 100%; height: 100%; display: flex;">
-          {/* Banner Background */}
-          <div style="position: absolute; inset: 0; opacity: 0.3;">
-            <img src="${animeData.banner || animeData.poster}" alt="banner" style="width: 100%; height: 100%; object-fit: cover;" />
-          </div>
+Discovered on Otaku's Library 🔥
+https://www.otaku-s-library.vercel.app`;
 
-          {/* Dark Overlay */}
-          <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(26,26,46,0.9) 100%);"></div>
+      // Check if Web Share API is available
+      if (navigator.share) {
+        await navigator.share({
+          title: `Check out ${animeData.title}!`,
+          text: shareText,
+          url: `${window.location.origin}?anime=${uid}`,
+        });
+        setGeneratingCard(false);
+        return;
+      }
 
-          {/* Content */}
-          <div style="position: relative; display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; padding: 40px; z-index: 10;">
-            {/* Left Side - Poster */}
-            <div style="flex-shrink: 0; margin-right: 40px;">
-              <img 
-                src="${animeData.poster}" 
-                alt="poster" 
-                style="
-                  width: 280px;
-                  height: 400px;
-                  border-radius: 20px;
-                  box-shadow: 0 20px 60px rgba(168, 85, 247, 0.5);
-                  border: 4px solid rgba(168, 85, 247, 0.5);
-                  object-fit: cover;
-                "
-              />
-            </div>
-
-            {/* Right Side - Info */}
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; color: white;">
-              {/* Title */}
-              <h1 style="
-                font-size: 48px;
-                font-weight: 900;
-                margin: 0;
-                margin-bottom: 15px;
-                background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                max-width: 90%;
-              ">
-                ${animeData.title}
-              </h1>
-
-              {/* Japanese Name */}
-              ${animeData.jp_name ? `
-                <p style="
-                  font-size: 18px;
-                  color: rgba(168, 85, 247, 0.8);
-                  margin: 0;
-                  margin-bottom: 20px;
-                ">
-                  ${animeData.jp_name}
-                </p>
-              ` : ''}
-
-              {/* Info Row */}
-              <div style="display: flex; gap: 30px; margin-bottom: 25px; flex-wrap: wrap;">
-                <div style="display: flex; flex-direction: column;">
-                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Status</span>
-                  <span style="font-size: 18px; font-weight: bold; color: ${animeData.status === 'Ongoing' ? '#22c55e' : '#3b82f6'};">
-                    ${animeData.status || 'Unknown'}
-                  </span>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Episodes</span>
-                  <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">
-                    ${animeData.episodes || '?'}
-                  </span>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Rating</span>
-                  <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">
-                    ⭐ ${animeData.rating || 'N/A'}
-                  </span>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                  <span style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold;">Type</span>
-                  <span style="font-size: 18px; font-weight: bold; color: #06b6d4;">
-                    ${animeData.type || 'Unknown'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Genres */}
-              ${genres.length > 0 ? `
-                <div style="margin-bottom: 25px;">
-                  <p style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; font-weight: bold; margin: 0 0 10px 0;">Genres</p>
-                  <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    ${genres.map(g => `
-                      <span style="
-                        background: rgba(168, 85, 247, 0.2);
-                        border: 1px solid rgba(168, 85, 247, 0.5);
-                        color: #a78bfa;
-                        padding: 6px 12px;
-                        border-radius: 8px;
-                        font-size: 13px;
-                        font-weight: bold;
-                      ">
-                        ${typeof g === 'string' ? g : g.name || g}
-                      </span>
-                    `).join('')}
-                  </div>
-                </div>
-              ` : ''}
-
-              {/* Website Link */}
-              <div style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 15px 20px;
-                background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
-                border: 2px solid rgba(168, 85, 247, 0.5);
-                border-radius: 12px;
-                margin-top: auto;
-                width: fit-content;
-              ">
-                <span style="font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.7);">Check it out:</span>
-                <span style="font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                  www.otaku-s-library.vercel.app
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Watermark */}
-          <div style="
-            position: absolute;
-            bottom: 20px;
-            right: 40px;
-            font-size: 14px;
-            color: rgba(168, 85, 247, 0.6);
-            font-weight: bold;
-          ">
-            Otaku's Library
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(cardElement);
-
-      // Generate canvas from the element
-      const canvas = await html2canvas(cardElement, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-      });
-
-      // Convert canvas to blob and share
-      canvas.toBlob(async (blob) => {
-        try {
-          // Check if Web Share API is available
-          if (navigator.share && navigator.canShare({ files: [new File([blob], 'anime-card.png', { type: 'image/png' })] })) {
-            await navigator.share({
-              files: [new File([blob], `${animeData.title}-card.png`, { type: 'image/png' })],
-              title: `Check out ${animeData.title}!`,
-              text: `Discovered this amazing anime on Otaku's Library!`,
-            });
-          } else {
-            // Fallback: Download the image
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${animeData.title}-card.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }
-        } catch (error) {
-          console.error('Share failed:', error);
-          // Fallback: Download
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${animeData.title}-card.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } finally {
-          document.body.removeChild(cardElement);
-          setGeneratingCard(false);
-        }
-      });
+      // Fallback: Copy to clipboard and show options
+      await navigator.clipboard.writeText(shareText);
+      alert('Copied to clipboard! You can now paste and share on any platform.');
+      setGeneratingCard(false);
     } catch (error) {
-      console.error('Error generating share card:', error);
+      console.error('Share failed:', error);
       setGeneratingCard(false);
     }
   };
@@ -554,22 +413,23 @@ export default function AnimeUI({isDark = true}) {
 
                 {/* Stats Grid */}
                 <div className="flex flex-wrap gap-3 mb-8">
-                  {[
-                    { icon: Star, value: animeData.rating || 'N/A', label: 'Score', color: 'yellow' },
-                    { icon: Tv, value: animeData.episodes || '?', label: 'Episodes', color: 'pink' },
-                    { icon: Calendar, value: animeData.season || 'Unknown', label: 'Season', color: 'cyan' },
-                    { icon: Zap, value: animeData.type || 'Unknown', label: 'Type', color: 'orange' },
-                  ].map((stat, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:scale-110 transition-transform duration-300 animate-fade-in`}
-                      style={{ animationDelay: `${0.1 + i * 0.05}s` }}
-                    >
-                      <stat.icon size={18} className={`text-${stat.color}-400`} />
-                      <span className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>{stat.value}</span>
-                      <span className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>{stat.label}</span>
-                    </div>
-                  ))}
+                 {[
+  { icon: Star, value: animeData?.rating ? parseFloat(animeData.rating).toFixed(2) : 'N/A', label: 'Score', color: 'yellow' },
+  { icon: MessageSquare, value: animeData?.review_count || 0, label: 'Reviews', color: 'purple' },
+  { icon: Tv, value: animeData?.episodes || '?', label: 'Episodes', color: 'pink' },
+  { icon: Calendar, value: animeData?.season || 'Unknown', label: 'Season', color: 'cyan' },
+  { icon: Zap, value: animeData?.type || 'Unknown', label: 'Type', color: 'orange' },
+].map((stat, i) => (
+  <div
+    key={i}
+    className={`flex items-center gap-2 px-4 py-2 rounded-xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:scale-110 transition-transform duration-300 animate-fade-in`}
+    style={{ animationDelay: `${0.1 + i * 0.05}s` }}
+  >
+    <stat.icon size={18} className={`text-${stat.color}-400`} />
+    <span className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>{stat.value}</span>
+    <span className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>{stat.label}</span>
+  </div>
+))}
                 </div>
 
                 {/* Action Buttons */}
@@ -602,14 +462,144 @@ export default function AnimeUI({isDark = true}) {
                   >
                     <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
                   </button>
+                  {/* Share Button with Dropdown */}
                   <button 
-                    onClick={handleShareCard}
-                    disabled={generatingCard}
-                    className={`p-3 rounded-xl transition-all hover:scale-110 transform ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl disabled:opacity-50`}
+                    onClick={() => setShowShareModal(true)}
+                    className={`p-3 rounded-xl transition-all hover:scale-110 transform ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}
                     title="Share this anime"
                   >
                     <Share2 size={20} />
                   </button>
+
+                  {/* Share Modal Popup */}
+                  {showShareModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+                      <div className={`relative w-full max-w-sm rounded-3xl overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'} shadow-2xl animate-pop-in`}>
+                        
+                        {/* Header */}
+                        <div className="relative h-32 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600">
+                          <div className="absolute inset-0 bg-black/20"></div>
+                          <div className="relative h-full flex items-center justify-center">
+                            <div className="text-center">
+                              <Share2 size={32} className="text-white mx-auto mb-2" />
+                              <h2 className="text-2xl font-black text-white">Share This</h2>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-3">
+                          
+                          {/* WhatsApp */}
+                          <a
+                            href={`https://wa.me/?text=${encodeURIComponent(`🎬 Check out: ${animeData.title}\n⭐ Rating: ${animeData.rating || 'N/A'}\n📺 Episodes: ${animeData.episodes || '?'}\n\nDiscover on Otaku's Library: ${window.location.href}`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setShowShareModal(false)}
+                            className={`flex items-center gap-4 px-5 py-3 rounded-xl transition-all hover:scale-105 transform ${isDark ? 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30' : 'bg-green-500/20 hover:bg-green-500/30 text-green-600 border border-green-500/30'}`}
+                          >
+                            <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.946 1.299c-1.504.996-2.59 2.353-3.179 3.833-.589 1.48-.537 3.058.21 4.487 1.524 2.939 4.802 4.752 7.838 4.752 1.305 0 2.58-.26 3.79-.78 1.21-.52 2.297-1.278 3.158-2.25l-.789-1.289c-.763.949-1.731 1.634-2.78 2.065-1.049.431-2.161.652-3.379.652-2.455 0-4.917-1.35-6.083-3.43-.591-1.041-.649-2.304-.158-3.5.49-1.196 1.48-2.15 2.655-2.708 1.174-.558 2.525-.677 3.832-.336z"/>
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">WhatsApp</p>
+                              <p className="text-xs opacity-70">Share with contacts</p>
+                            </div>
+                            <ChevronRight size={20} />
+                          </a>
+
+                          {/* Facebook */}
+                          <a
+                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setShowShareModal(false)}
+                            className={`flex items-center gap-4 px-5 py-3 rounded-xl transition-all hover:scale-105 transform ${isDark ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-600/30' : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-600 border border-blue-600/30'}`}
+                          >
+                            <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">Facebook</p>
+                              <p className="text-xs opacity-70">Share on your wall</p>
+                            </div>
+                            <ChevronRight size={20} />
+                          </a>
+
+                          {/* Twitter/X */}
+                          <a
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out: ${animeData.title} ⭐${animeData.rating || 'N/A'}\n`)}&url=${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setShowShareModal(false)}
+                            className={`flex items-center gap-4 px-5 py-3 rounded-xl transition-all hover:scale-105 transform ${isDark ? 'bg-black/30 hover:bg-black/40 text-white border border-white/20' : 'bg-black/30 hover:bg-black/40 text-white border border-white/20'}`}
+                          >
+                            <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2s9 5 20 5a9.5 9.5 0 00-9-5.5c4.75 2.25 7-7 7-7"/>
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">Twitter/X</p>
+                              <p className="text-xs opacity-70">Tweet about it</p>
+                            </div>
+                            <ChevronRight size={20} />
+                          </a>
+
+                          {/* Instagram */}
+                          <button
+                            onClick={() => {
+                              alert('Open Instagram and share the link in your story or DM!');
+                              setShowShareModal(false);
+                            }}
+                            className={`w-full flex items-center gap-4 px-5 py-3 rounded-xl transition-all hover:scale-105 transform ${isDark ? 'bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 border border-pink-500/30' : 'bg-pink-500/20 hover:bg-pink-500/30 text-pink-600 border border-pink-500/30'}`}
+                          >
+                            <svg className="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" strokeWidth="2"/>
+                              <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                              <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">Instagram</p>
+                              <p className="text-xs opacity-70">Share in story</p>
+                            </div>
+                            <ChevronRight size={20} />
+                          </button>
+
+                          {/* Copy Link */}
+                          <button
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(window.location.href);
+                              alert('Link copied to clipboard!');
+                              setShowShareModal(false);
+                            }}
+                            className={`w-full flex items-center gap-4 px-5 py-3 rounded-xl transition-all hover:scale-105 transform ${isDark ? 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30' : 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-600 border border-purple-500/30'}`}
+                          >
+                            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">Copy Link</p>
+                              <p className="text-xs opacity-70">Copy to clipboard</p>
+                            </div>
+                            <ChevronRight size={20} />
+                          </button>
+                        </div>
+
+                        {/* Close Button */}
+                        <div className="p-4 border-t border-white/10">
+                          <button
+                            onClick={() => setShowShareModal(false)}
+                            className={`w-full py-2.5 rounded-lg font-bold transition-all ${
+                              isDark
+                                ? 'bg-white/10 hover:bg-white/20 text-white'
+                                : 'bg-black/10 hover:bg-black/20 text-black'
+                            }`}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1127,6 +1117,34 @@ export default function AnimeUI({isDark = true}) {
       )}
     </div>
   )}
+    {/* At the bottom of your content */}
+<div className={`mt-6`}>    
+  <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="anime" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh anime data when reviews change
+      const fetchAnimeData = async () => {
+        const { data, error } = await supabase
+          .from('Ani_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setAnimeData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
 
             </div>
           </div>
@@ -1149,6 +1167,21 @@ export default function AnimeUI({isDark = true}) {
         .animate-fade-in {
           animation: fade-in 0.6s ease-out forwards;
           opacity: 0;
+        }
+
+        @keyframes pop-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .animate-pop-in {
+          animation: pop-in 0.3s ease-out;
         }
       `}</style>
     </div>

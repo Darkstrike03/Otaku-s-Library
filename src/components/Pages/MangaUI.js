@@ -11,6 +11,7 @@ import {
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
+import ReviewSection from '../ReviewSection';
 
 export default function MangaUI({isDark = true}) {
   const { uid } = useParams();
@@ -26,12 +27,17 @@ export default function MangaUI({isDark = true}) {
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [generatingCard, setGeneratingCard] = useState(false);
   const [showContentWarnings, setShowContentWarnings] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      if(user){
       setUserId(user?.id);
+      setCurrentUser(user);
+      await loadUserData(user?.id);
+    }
     };
     getCurrentUser();
   }, []);
@@ -1073,6 +1079,33 @@ export default function MangaUI({isDark = true}) {
           </div>
         )}
       </div>
+      <div className={`mt-6 p-4 md:p-8 ${isDark ? 'bg-white/5 border-t border-white/10' : 'bg-black/5 border-t border-black/10'} backdrop-blur-xl`}>    
+            <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="manga" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh anime data when reviews change
+      const fetchMangaData = async () => {
+        const { data, error } = await supabase
+          .from('Manga_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setMangaData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
     </div>
   );
 }

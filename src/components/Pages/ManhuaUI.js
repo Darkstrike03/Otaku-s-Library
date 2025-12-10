@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
+import ReviewSection from '../ReviewSection';
 
 export default function ManhuaUI({ isDark = true }) {
   const { uid } = useParams();
@@ -47,6 +48,16 @@ export default function ManhuaUI({ isDark = true }) {
     }
     return [];
   };
+  
+  useEffect(() => {
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if(user){
+      setCurrentUser(user);
+    }
+  };
+  getCurrentUser();
+}, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -818,6 +829,33 @@ export default function ManhuaUI({ isDark = true }) {
           </div>
         </div>
       )}
+      <div className={`mt-6 p-4 md-6 border-t ${isDark ? 'border-yellow-500/20' : 'border-yellow-300/50'}`}>    
+            <ReviewSection 
+    isDark={isDark} 
+    uid={uid} 
+    category="manhua" 
+    currentUser={currentUser}
+    onReviewUpdated={() => {
+      // Refresh anime data when reviews change
+      const fetchManhuaData = async () => {
+        const { data, error } = await supabase
+          .from('Manhua_data')
+          .select('rating, review_count')
+          .eq('uid', uid)
+          .single();
+        
+        if (!error && data) {
+          setManhuaData(prev => ({
+            ...prev,
+            rating: data.rating,
+            review_count: data.review_count
+          }));
+        }
+      };
+      fetchAnimeData();
+    }}
+  />
+</div>
     </div>
   );
 }
