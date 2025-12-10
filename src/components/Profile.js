@@ -10,6 +10,7 @@ import {
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages'; // Import the getJsonFile function
 import { uploadToImgBB } from '@/lib/imageUpload';
+import ProfileEditor from './ProfileEditor';
 
 export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DEFAULT
   const router = useRouter();  // ADD THIS
@@ -24,6 +25,8 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [loadingBookmarks, setLoadingBookmarks] = useState(false);
   const [isOwner, setIsOwner] = useState(false); // Add owner state
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+
   
   // Onboarding form state
   const [onboardingData, setOnboardingData] = useState({
@@ -733,20 +736,18 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
 
               <div className="flex gap-3 w-full sm:w-auto">
                 <button
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 ${
-                    isOwner
-                      ? 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white'
-                      : isEditMode
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : isDark
-                      ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                      : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'
-                  } backdrop-blur-xl flex items-center gap-2 justify-center`}
-                >
-                  <Edit size={18} />
-                  {isEditMode ? 'Save' : 'Edit Profile'}
-                </button>
+                onClick={() => setShowProfileEditor(true)}
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 ${
+                  isOwner
+                    ? 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white'
+                    : isDark
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                } backdrop-blur-xl flex items-center gap-2 justify-center`}
+              >
+                <Edit size={18} />
+                Edit Profile
+              </button>
 
                 <button
                   onClick={handleLogout}
@@ -971,6 +972,24 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
           </div>
         </div>
       )}
+// Replace the ProfileEditor section at the very bottom with:
+{showProfileEditor && (
+  <ProfileEditor
+    isDark={isDark}
+    userData={{
+      displayName: userData.displayName,
+      bio: userData.bio,
+      email: userData.email,
+      location: userData.location,
+      website: userData.website,
+      avatar: userData.avatar,
+      banner: userData.banner,
+    }}
+    currentUser={currentUser}
+    onClose={() => setShowProfileEditor(false)}
+    onSave={checkUserAndLoadData}
+  />
+)}
     </>
   );
 }
