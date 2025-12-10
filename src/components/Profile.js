@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages'; // Import the getJsonFile function
+import { uploadToImgBB } from '@/lib/imageUpload';
 
 export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DEFAULT
   const router = useRouter();  // ADD THIS
@@ -33,6 +34,8 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
   });
   const [onboardingError, setOnboardingError] = useState('');
   const [savingOnboarding, setSavingOnboarding] = useState(false);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   useEffect(() => {
     checkUserAndLoadData();
@@ -357,32 +360,46 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
     <>
       {/* Onboarding Modal */}
       {showOnboardingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className={`relative max-w-2xl w-full rounded-3xl overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'} shadow-2xl`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl overflow-y-auto">
+          <div className={`relative w-full max-w-md rounded-3xl overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'} shadow-2xl my-8`}>
             {/* Gradient Header */}
-            <div className="relative h-32 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600">
+            <div className="relative h-24 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600">
               <div className="absolute inset-0 bg-black/20"></div>
               <div className="relative h-full flex items-center justify-center">
                 <div className="text-center">
-                  <Crown size={48} className="text-white mx-auto mb-2" />
-                  <h2 className="text-3xl font-black text-white">Complete Your Profile</h2>
-                  <p className="text-white/80 text-sm mt-1">Let's set up your otaku identity!</p>
+                  <Crown size={32} className="text-white mx-auto mb-1" />
+                  <h2 className="text-2xl font-black text-white">Complete Profile</h2>
                 </div>
               </div>
             </div>
 
             {/* Form Content */}
-            <div className="p-8">
+            <div className="p-6 space-y-5 max-h-[calc(100vh-200px)] overflow-y-auto">
               {onboardingError && (
-                <div className="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
+                <div className="p-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
                   {onboardingError}
                 </div>
               )}
 
-              <form onSubmit={handleOnboardingSubmit} className="space-y-6">
+              {/* Success Notification */}
+              {onboardingData.profile_pic && !onboardingError && (
+                <div className="p-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-sm flex items-center gap-2">
+                  <span>✓</span>
+                  Profile picture uploaded successfully!
+                </div>
+              )}
+
+              {onboardingData.banner && !onboardingError && (
+                <div className="p-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-sm flex items-center gap-2">
+                  <span>✓</span>
+                  Banner uploaded successfully!
+                </div>
+              )}
+
+              <form onSubmit={handleOnboardingSubmit} className="space-y-4">
                 {/* Username */}
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
                     Username *
                   </label>
                   <input
@@ -390,7 +407,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                     value={onboardingData.username}
                     onChange={(e) => setOnboardingData({ ...onboardingData, username: e.target.value })}
                     placeholder="otakumaster123"
-                    className={`w-full px-4 py-3 rounded-xl font-medium transition-all ${
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                       isDark
                         ? 'bg-white/5 text-white placeholder-white/40 border-2 border-white/10 focus:border-purple-500'
                         : 'bg-black/5 text-black placeholder-black/40 border-2 border-black/10 focus:border-purple-500'
@@ -401,7 +418,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
 
                 {/* Display Name */}
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
                     Display Name *
                   </label>
                   <input
@@ -409,7 +426,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                     value={onboardingData.displayname}
                     onChange={(e) => setOnboardingData({ ...onboardingData, displayname: e.target.value })}
                     placeholder="The Legendary Weeb"
-                    className={`w-full px-4 py-3 rounded-xl font-medium transition-all ${
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                       isDark
                         ? 'bg-white/5 text-white placeholder-white/40 border-2 border-white/10 focus:border-purple-500'
                         : 'bg-black/5 text-black placeholder-black/40 border-2 border-black/10 focus:border-purple-500'
@@ -418,56 +435,146 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                   />
                 </div>
 
-                {/* Profile Picture URL */}
+                {/* Profile Picture Upload */}
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
-                    Profile Picture URL *
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    Profile Picture *
                   </label>
-                  <input
-                    type="url"
-                    value={onboardingData.profile_pic}
-                    onChange={(e) => setOnboardingData({ ...onboardingData, profile_pic: e.target.value })}
-                    placeholder="https://i.ibb.co/your-image.jpg"
-                    className={`w-full px-4 py-3 rounded-xl font-medium transition-all ${
-                      isDark
-                        ? 'bg-white/5 text-white placeholder-white/40 border-2 border-white/10 focus:border-purple-500'
-                        : 'bg-black/5 text-black placeholder-black/40 border-2 border-black/10 focus:border-purple-500'
-                    } outline-none`}
-                    required
-                  />
-                  <p className={`text-xs mt-1 ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                    Upload to ImgBB or PostImages and paste the direct link
-                  </p>
+                  <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-all cursor-pointer ${
+                    isDark
+                      ? 'border-purple-500/50 hover:border-purple-500 hover:bg-purple-500/10'
+                      : 'border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/5'
+                  }`}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setUploadingProfilePic(true);
+                          try {
+                            setOnboardingError('');
+                            const url = await uploadToImgBB(file);
+                            setOnboardingData({ ...onboardingData, profile_pic: url });
+                            setUploadingProfilePic(false);
+                          } catch (error) {
+                            setOnboardingError('Failed to upload: ' + error.message);
+                            setUploadingProfilePic(false);
+                          }
+                        }
+                      }}
+                      className="hidden"
+                      id="profile-pic-input"
+                    />
+                    <label htmlFor="profile-pic-input" className="cursor-pointer">
+                      {uploadingProfilePic ? (
+                        <div className="space-y-2">
+                          <div className="w-16 h-16 rounded-lg mx-auto bg-gradient-to-br from-purple-500 to-pink-500 animate-pulse flex items-center justify-center">
+                            <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                          <p className={`text-xs font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                            Uploading...
+                          </p>
+                        </div>
+                      ) : onboardingData.profile_pic ? (
+                        <div className="space-y-2">
+                          <img 
+                            src={onboardingData.profile_pic} 
+                            alt="Preview" 
+                            className="w-16 h-16 rounded-lg mx-auto object-cover"
+                          />
+                          <p className={`text-xs font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                            Click to change
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-2xl">🖼️</div>
+                          <p className={`text-xs font-bold ${isDark ? 'text-white' : 'text-black'}`}>
+                            Upload image
+                          </p>
+                          <p className={`text-[10px] ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                            PNG, JPG up to 5MB
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
                 </div>
 
-                {/* Banner URL */}
+                {/* Banner Upload */}
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
-                    Banner URL *
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    Banner *
                   </label>
-                  <input
-                    type="url"
-                    value={onboardingData.banner}
-                    onChange={(e) => setOnboardingData({ ...onboardingData, banner: e.target.value })}
-                    placeholder="https://i.ibb.co/your-banner.jpg"
-                    className={`w-full px-4 py-3 rounded-xl font-medium transition-all ${
-                      isDark
-                        ? 'bg-white/5 text-white placeholder-white/40 border-2 border-white/10 focus:border-purple-500'
-                        : 'bg-black/5 text-black placeholder-black/40 border-2 border-black/10 focus:border-purple-500'
-                    } outline-none`}
-                    required
-                  />
-                  <p className={`text-xs mt-1 ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                    Recommended size: 1920x400px
-                  </p>
+                  <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-all cursor-pointer ${
+                    isDark
+                      ? 'border-purple-500/50 hover:border-purple-500 hover:bg-purple-500/10'
+                      : 'border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/5'
+                  }`}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setUploadingBanner(true);
+                          try {
+                            setOnboardingError('');
+                            const url = await uploadToImgBB(file);
+                            setOnboardingData({ ...onboardingData, banner: url });
+                            setUploadingBanner(false);
+                          } catch (error) {
+                            setOnboardingError('Failed to upload: ' + error.message);
+                            setUploadingBanner(false);
+                          }
+                        }
+                      }}
+                      className="hidden"
+                      id="banner-input"
+                    />
+                    <label htmlFor="banner-input" className="cursor-pointer">
+                      {uploadingBanner ? (
+                        <div className="space-y-2">
+                          <div className="w-full h-16 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 animate-pulse flex items-center justify-center">
+                            <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                          <p className={`text-xs font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                            Uploading banner...
+                          </p>
+                        </div>
+                      ) : onboardingData.banner ? (
+                        <div className="space-y-2">
+                          <img 
+                            src={onboardingData.banner} 
+                            alt="Preview" 
+                            className="w-full h-16 rounded-lg object-cover"
+                          />
+                          <p className={`text-xs font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                            Click to change
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-2xl">🎨</div>
+                          <p className={`text-xs font-bold ${isDark ? 'text-white' : 'text-black'}`}>
+                            Upload banner
+                          </p>
+                          <p className={`text-[10px] ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                            1920x400px recommended
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={savingOnboarding}
-                  className={`w-full py-4 rounded-xl font-bold text-white transition-all ${
-                    savingOnboarding
+                  disabled={savingOnboarding || !onboardingData.profile_pic || !onboardingData.banner}
+                  className={`w-full py-3 rounded-lg font-bold text-white text-sm transition-all ${
+                    savingOnboarding || !onboardingData.profile_pic || !onboardingData.banner
                       ? 'bg-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105'
                   }`}
@@ -476,8 +583,8 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                 </button>
               </form>
 
-              <p className={`text-center text-sm mt-6 ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                All fields are required to get started
+              <p className={`text-center text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                All fields required
               </p>
             </div>
           </div>
