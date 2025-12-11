@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Heart, Bookmark, Star, TrendingUp, Play, CheckCircle, BookmarkPlus, Hourglass, PauseCircle, XCircle, Clock, Edit, LogOut, Settings, Share2, 
   Calendar, MapPin, Award, Flame, Eye, MessageCircle,
-  User, Mail, Globe, Github, Twitter, Instagram, Sparkles, Crown, Target, BookOpen, X
+  User, Mail, Globe, Github, Twitter, Instagram, Sparkles, Crown, Target, BookOpen, X, Lock, Shield
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
@@ -32,6 +32,11 @@ export default function Profile({ isDark = true }) {
   const [userLists, setUserLists] = useState({});
   const [loadingLists, setLoadingLists] = useState(false);
   const [selectedListType, setSelectedListType] = useState('current');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   
   // Onboarding form state
@@ -449,7 +454,50 @@ export default function Profile({ isDark = true }) {
       console.error('Logout failed:', error.message);
       alert('Failed to log out. Please try again.');
     } else {
-      router.push('/login');
+      router.push('/');
+    }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    
+    if (!newPassword || !confirmNewPassword) {
+      alert('Please fill in all password fields');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        console.error('Password update failed:', error.message);
+        alert('Failed to update password: ' + error.message);
+        return;
+      }
+
+      alert('Password updated successfully!');
+      setShowSettingsModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (error) {
+      console.error('Password update error:', error);
+      alert('Failed to update password. Please try again.');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -760,7 +808,10 @@ export default function Profile({ isDark = true }) {
               <button className={`p-3 rounded-xl transition-all hover:scale-110 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}>
                 <Share2 size={20} />
               </button>
-              <button className={`p-3 rounded-xl transition-all hover:scale-110 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}>
+              <button 
+                onClick={() => setShowSettingsModal(true)}
+                className={`p-3 rounded-xl transition-all hover:scale-110 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border border-black/20'} backdrop-blur-xl`}
+              >
                 <Settings size={20} />
               </button>
             </div>
@@ -1285,6 +1336,107 @@ export default function Profile({ isDark = true }) {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+          <div className={`relative w-full max-w-md rounded-2xl overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'} shadow-2xl`}>
+            {/* Header */}
+            <div className="relative h-20 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600">
+              <div className="absolute inset-0 bg-black/20"></div>
+              <div className="relative h-full flex items-center justify-center">
+                <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                  <Settings size={24} />
+                  Settings
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSettingsModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmNewPassword('');
+                }}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              <div className={`p-4 rounded-xl ${isDark ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-purple-500/10 border border-purple-500/30'}`}>
+                <div className="flex items-start gap-3">
+                  <Shield size={20} className="text-purple-400 mt-0.5" />
+                  <div>
+                    <h3 className={`font-bold text-sm mb-1 ${isDark ? 'text-white' : 'text-black'}`}>Security Notice</h3>
+                    <p className={`text-xs ${isDark ? 'text-white/70' : 'text-black/70'}`}>
+                      You can only reset your password after logging in to your account. This ensures maximum security.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Password Reset Form */}
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-black'} flex items-center gap-2`}>
+                  <Lock size={20} className="text-purple-400" />
+                  Change Password
+                </h3>
+
+                {/* New Password */}
+                <div>
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    New Password *
+                  </label>
+                  <div className={`flex items-center px-3 py-2 rounded-lg border ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+                    <Lock size={16} className="mr-2 opacity-70" />
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      className={`flex-1 bg-transparent outline-none text-sm ${isDark ? 'text-white placeholder-white/40' : 'text-black placeholder-black/40'}`}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    Confirm New Password *
+                  </label>
+                  <div className={`flex items-center px-3 py-2 rounded-lg border ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+                    <Lock size={16} className="mr-2 opacity-70" />
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className={`flex-1 bg-transparent outline-none text-sm ${isDark ? 'text-white placeholder-white/40' : 'text-black placeholder-black/40'}`}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <p className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                  Password must be at least 6 characters long
+                </p>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className={`w-full py-3 rounded-lg font-bold text-white transition-all ${changingPassword ? 'bg-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'}`}
+                >
+                  {changingPassword ? 'Updating Password...' : 'Update Password'}
+                </button>
+              </form>
             </div>
           </div>
         </div>

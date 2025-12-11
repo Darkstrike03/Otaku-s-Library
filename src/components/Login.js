@@ -8,14 +8,61 @@ export default function Login({ isDark = true, onLogin, onClose }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
 
   const handleSubmit = async () => {
     setLoading(true);
 
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        // FORGOT PASSWORD - Send Magic Link
+        if (!email) {
+          alert("Please enter your email address");
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Attempting to send magic link to:", email);
+        
+        const { data, error } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            emailRedirectTo: `${window.location.origin}/profile`,
+            shouldCreateUser: false, // Only send to existing users
+          },
+        });
+        
+        console.log("Magic link response:", { data, error });
+        
+        if (error) {
+          console.error("Magic link failed:", error.message);
+          
+          // Check if it's a configuration issue
+          if (error.message.includes('Email') || error.message.includes('SMTP')) {
+            alert("Email service not configured. Please contact support or use the regular login with your password.");
+          } else {
+            alert("Failed to send magic link: " + error.message + "\n\nPlease check:\n1. Email exists in system\n2. Check spam folder\n3. Contact support if issue persists");
+          }
+          return;
+        }
+        
+        alert("Magic link sent! Please check your email inbox (and spam folder) to login. The link will expire in 1 hour.");
+        setIsForgotPassword(false);
+        setEmail("");
+      } else if (isSignUp) {
         // SIGN UP
+        if (password !== confirmPassword) {
+          alert("Passwords do not match!");
+          setLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          alert("Password must be at least 6 characters long");
+          setLoading(false);
+          return;
+        }
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -98,7 +145,7 @@ export default function Login({ isDark = true, onLogin, onClose }) {
             isDark ? "text-white" : "text-black"
           }`}
         >
-          {isSignUp ? "Create Account" : "Welcome Back"}
+          {isForgotPassword ? "Reset Password" : isSignUp ? "Create Account" : "Welcome Back"}
         </h2>
 
         {/* Email */}
@@ -120,23 +167,63 @@ export default function Login({ isDark = true, onLogin, onClose }) {
         </div>
 
         {/* Password */}
-        <label className={`text-sm font-bold ${isDark ? "text-white/80" : "text-black/80"}`}>
-          Password
-        </label>
-        <div
-          className={`flex items-center mt-1 px-3 py-2 mb-4 rounded-xl backdrop-blur-xl border 
-            ${isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-black/5"}`}
-        >
-          <Lock size={18} className="mr-2 opacity-70" />
-          <input
-            type="password"
-            className={`flex-1 bg-transparent outline-none text-sm 
-            ${isDark ? "text-white placeholder-white/40" : "text-black placeholder-black/40"}`}
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+        {!isForgotPassword && (
+          <>
+            <label className={`text-sm font-bold ${isDark ? "text-white/80" : "text-black/80"}`}>
+              Password
+            </label>
+            <div
+              className={`flex items-center mt-1 px-3 py-2 mb-4 rounded-xl backdrop-blur-xl border 
+                ${isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-black/5"}`}
+            >
+              <Lock size={18} className="mr-2 opacity-70" />
+              <input
+                type="password"
+                className={`flex-1 bg-transparent outline-none text-sm 
+                ${isDark ? "text-white placeholder-white/40" : "text-black placeholder-black/40"}`}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Confirm Password (Sign Up only) */}
+        {isSignUp && !isForgotPassword && (
+          <>
+            <label className={`text-sm font-bold ${isDark ? "text-white/80" : "text-black/80"}`}>
+              Confirm Password
+            </label>
+            <div
+              className={`flex items-center mt-1 px-3 py-2 mb-4 rounded-xl backdrop-blur-xl border 
+                ${isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-black/5"}`}
+            >
+              <Lock size={18} className="mr-2 opacity-70" />
+              <input
+                type="password"
+                className={`flex-1 bg-transparent outline-none text-sm 
+                ${isDark ? "text-white placeholder-white/40" : "text-black placeholder-black/40"}`}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Forgot Password Link (Login only) */}
+        {!isSignUp && !isForgotPassword && (
+          <div className="text-right mb-4">
+            <button
+              onClick={() => setIsForgotPassword(true)}
+              className={`text-sm font-semibold hover:underline 
+              ${isDark ? "text-purple-400" : "text-purple-700"}`}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
 
         {/* Submit */}
         <button
@@ -144,37 +231,62 @@ export default function Login({ isDark = true, onLogin, onClose }) {
           className={`w-full py-3 rounded-xl text-white font-bold mt-2 transition 
           bg-gradient-to-r from-purple-500 to-pink-600 hover:scale-[1.02]`}
         >
-          {loading ? "Loading..." : isSignUp ? "Create Account" : "Login"}
+          {loading ? "Loading..." : isForgotPassword ? "Send Magic Link" : isSignUp ? "Create Account" : "Login"}
         </button>
 
-        {/* Divider */}
-        <div className="my-6 flex items-center gap-3">
-          <div className="flex-1 h-px bg-white/20"></div>
-          <span className="text-sm opacity-60">OR</span>
-          <div className="flex-1 h-px bg-white/20"></div>
-        </div>
+        {/* Back to Login (Forgot Password) */}
+        {isForgotPassword && (
+          <div className="text-center mt-4">
+            <button
+              onClick={() => {
+                setIsForgotPassword(false);
+                setEmail("");
+              }}
+              className={`text-sm font-semibold hover:underline 
+              ${isDark ? "text-purple-400" : "text-purple-700"}`}
+            >
+              Back to Login
+            </button>
+          </div>
+        )}
 
-        {/* Social logins */}
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={() => handleSocialLogin("Google")}
-            className="flex items-center justify-center gap-3 w-full py-2 rounded-xl bg-white text-black hover:bg-gray-100 transition"
-          >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
-            {isSignUp ? "Sign Up with Google" : "Login with Google"}
-          </button>
-        </div>
+        {/* Divider */}
+        {!isForgotPassword && (
+          <>
+            <div className="my-6 flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/20"></div>
+              <span className="text-sm opacity-60">OR</span>
+              <div className="flex-1 h-px bg-white/20"></div>
+            </div>
+
+            {/* Social logins */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleSocialLogin("Google")}
+                className="flex items-center justify-center gap-3 w-full py-2 rounded-xl bg-white text-black hover:bg-gray-100 transition"
+              >
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
+                {isSignUp ? "Sign Up with Google" : "Login with Google"}
+              </button>
+            </div>
+          </>
+        )}
 
         {/* Toggle login/signup */}
-        <div className="text-center mt-4">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className={`text-sm font-semibold hover:underline 
-            ${isDark ? "text-purple-400" : "text-purple-700"}`}
-          >
-            {isSignUp ? "Already have an account? Log In" : "Don't have an account? Sign Up"}
-          </button>
-        </div>
+        {!isForgotPassword && (
+          <div className="text-center mt-4">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setConfirmPassword("");
+              }}
+              className={`text-sm font-semibold hover:underline 
+              ${isDark ? "text-purple-400" : "text-purple-700"}`}
+            >
+              {isSignUp ? "Already have an account? Log In" : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        )}
 
         <style>{`
           @keyframes slide {
