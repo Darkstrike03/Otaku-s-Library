@@ -83,10 +83,36 @@ export default function HeroSection() {
     return num.toString();
   };
 
-  // Fetch real stats from database
+  // Fetch real stats from database with caching
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        // Icon mapping
+        const iconMap = [Users, Star, Sparkles, TrendingUp];
+        
+        // Check if we have cached stats
+        const cachedStats = localStorage.getItem('homePageStats');
+        const cacheTimestamp = localStorage.getItem('homePageStatsTimestamp');
+        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+        
+        // Use cached data if it's fresh (less than 5 minutes old)
+        if (cachedStats && cacheTimestamp) {
+          const age = Date.now() - parseInt(cacheTimestamp);
+          if (age < CACHE_DURATION) {
+            console.log('Using cached stats (age: ' + Math.floor(age / 1000) + 's)');
+            const parsedStats = JSON.parse(cachedStats);
+            // Re-add icon components (they can't be serialized)
+            const statsWithIcons = parsedStats.map((stat, index) => ({
+              ...stat,
+              icon: iconMap[index]
+            }));
+            setStats(statsWithIcons);
+            return; // Exit early, use cached data
+          }
+        }
+
+        console.log('Fetching fresh stats from database...');
+
         // Fetch active users count from user_data table
         const { count: usersCount, error: usersError } = await supabase
           .from('user_data')
@@ -128,12 +154,20 @@ export default function HeroSection() {
         }
 
         // Update stats
-        setStats([
+        const newStats = [
           { number: formatNumber(usersCount || 0), label: 'Active Users', icon: Users },
           { number: formatNumber(totalTitles), label: 'Titles', icon: Star },
           { number: formatNumber(reviewsCount || 0), label: 'Reviews', icon: Sparkles },
           { number: formatNumber(twistCount), label: 'Lists Created', icon: TrendingUp },
-        ]);
+        ];
+        
+        setStats(newStats);
+        
+        // Cache the stats without icons (can't serialize functions)
+        const statsToCache = newStats.map(({ icon, ...rest }) => rest);
+        localStorage.setItem('homePageStats', JSON.stringify(statsToCache));
+        localStorage.setItem('homePageStatsTimestamp', Date.now().toString());
+        console.log('Stats fetched and cached successfully');
       } catch (error) {
         console.error('Error fetching stats:', error);
         // Keep default values on error

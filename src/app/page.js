@@ -33,13 +33,13 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://otaku-s-library.vercel.com',
+    url: 'https://otakulibrary.com',
     siteName: "Otaku's Library",
     title: "Otaku's Library - Your Ultimate Anime, Manga & Light Novel Tracker",
     description: "Track anime, manga, manhwa, manhua, donghua, and web novels all in one place. Join thousands of otaku worldwide with personalized lists, reviews, and recommendations.",
     images: [
       {
-        url: 'https://i.ibb.co/s9VCQbBY/og-image.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: "Otaku's Library - All-in-One Otaku Platform",
@@ -53,7 +53,7 @@ export const metadata = {
     title: "Otaku's Library - Your Ultimate Anime, Manga & Light Novel Tracker",
     description: "Track anime, manga, manhwa, manhua, donghua, and web novels all in one place. The best of MyAnimeList, AniList, MangaUpdates, and NovelUpdates combined.",
     creator: '@OtakusLibrary',
-    images: ['https://i.ibb.co/s9VCQbBY/og-image.png'],
+    images: ['/og-image.png'],
   },
   
   robots: {
