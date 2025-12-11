@@ -14,6 +14,7 @@ import {
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import ReviewSection from '../ReviewSection';
+import List from '@/components/List';
 
 export default function NovelUI({ isDark = true }) {
   const { uid } = useParams();
@@ -495,9 +496,20 @@ useEffect(() => {
               )}
             </div>
           )}
-
+          <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl animate-fade-in`} style={{ animationDelay: '0.3s' }}>
+                                      <h3 className={`text-sm font-black mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'} uppercase tracking-wide`}>
+                                        <BookMarked size={16} className="text-purple-400" />
+                                        My List
+                                      </h3>
+                                      <List
+                                        uid={uid}
+                                        contentType="manhua"
+                                        currentUser={currentUser}
+                                        isDark={isDark}
+                                      />
+                                    </div>
           {/* Synopsis */}
-          <div className="mb-6 sm:mb-8 md:mb-10">
+          <div className="mb-6 mt-5 sm:mb-8 md:mb-10">
             <h2 className={`text-lg sm:text-xl md:text-2xl font-black mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3 ${isDark ? 'text-white' : 'text-black'}`}>
               <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
               The Story

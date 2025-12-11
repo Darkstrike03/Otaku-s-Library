@@ -146,10 +146,10 @@ export default function HeroSection({ isDark, toggleTheme }) {
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
                 } shadow-lg hover:shadow-2xl`}>
-                  <span className="relative z-10 flex items-center gap-2">
-                  Contribute to Repo
+                  <Link href="/suggest" className="relative z-10 flex items-center gap-2">
+                    Suggest Content
                     <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
+                  </Link>
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
 

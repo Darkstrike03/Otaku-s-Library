@@ -9,6 +9,7 @@ import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
+import List from '@/components/List';
 
 export default function ManhwaUI({ isDark = true }) {
   const { uid } = useParams();
@@ -508,9 +509,21 @@ export default function ManhwaUI({ isDark = true }) {
                 )}
               </div>
             )}
+            <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl animate-fade-in`} style={{ animationDelay: '0.3s' }}>
+                                        <h3 className={`text-sm font-black mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'} uppercase tracking-wide`}>
+                                          <BookMarked size={16} className="text-purple-400" />
+                                          My List
+                                        </h3>
+                                        <List
+                                          uid={uid}
+                                          contentType="manhua"
+                                          currentUser={currentUser}
+                                          isDark={isDark}
+                                        />
+                                      </div>
 
             {/* Synopsis */}
-            <div className="mb-4">
+            <div className="mb-4 mt-3">
               <h2 className={`text-base sm:text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
                 Synopsis
               </h2>

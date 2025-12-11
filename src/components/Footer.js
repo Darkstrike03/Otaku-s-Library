@@ -19,7 +19,7 @@ export default function Footer({ isDark }) {
     community: [
       { name: 'Forums', icon: Users, href: '#' },
       { name: 'Reviews', icon: Star, href: '#' },
-      { name: 'Lists', icon: Sparkles, href: '#' },
+      { name: 'Lists', icon: Sparkles, href: '/list' },
       { name: 'Recommendations', icon: Heart, href: '#' },
     ],
     company: [

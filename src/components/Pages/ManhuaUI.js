@@ -8,11 +8,13 @@ import {
   ChevronDown, ChevronUp, AlertCircle, ArrowLeft, Image, Sparkles,
   Globe, Flame, Building2, Zap, User, Film, X, Feather, Radio,
   ExternalLink, Layers2, BarChart3, Lightbulb, Pen, Info, Grid3x3,
-  Palette, Eye, TrendingDown, Award, Zap as Lightning, Clock, Link as LinkIcon
+  Palette, Eye, TrendingDown, Award, Zap as Lightning, Clock, Link as LinkIcon,
+  BookMarked
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import ReviewSection from '../ReviewSection';
+import List from '@/components/List';
 
 export default function ManhuaUI({ isDark = true }) {
   const { uid } = useParams();
@@ -410,6 +412,18 @@ export default function ManhuaUI({ isDark = true }) {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
+              <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl animate-fade-in`} style={{ animationDelay: '0.3s' }}>
+                            <h3 className={`text-sm font-black mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'} uppercase tracking-wide`}>
+                              <BookMarked size={16} className="text-purple-400" />
+                              My List
+                            </h3>
+                            <List
+                              uid={uid}
+                              contentType="manhua"
+                              currentUser={currentUser}
+                              isDark={isDark}
+                            />
+                          </div>
               {/* Genre & Tags */}
               {manhuaData.genre && (
                 <div>

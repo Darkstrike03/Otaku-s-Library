@@ -1,19 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';  // ADD THIS
-import Link from 'next/link';  // ADD THIS
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
-  Heart, Bookmark, Star, TrendingUp, Clock, Edit, LogOut, Settings, Share2, 
+  Heart, Bookmark, Star, TrendingUp, Play, CheckCircle, BookmarkPlus, Hourglass, PauseCircle, XCircle, Clock, Edit, LogOut, Settings, Share2, 
   Calendar, MapPin, Award, Flame, Eye, MessageCircle,
   User, Mail, Globe, Github, Twitter, Instagram, Sparkles, Crown, Target, BookOpen, X
 } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
-import { getJsonFile } from '@/lib/pages'; // Import the getJsonFile function
+import { getJsonFile } from '@/lib/pages';
 import { uploadToImgBB } from '@/lib/imageUpload';
 import ProfileEditor from './ProfileEditor';
+import LevelXp from './LevelXp';
 
-export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DEFAULT
-  const router = useRouter();  // ADD THIS
+export default function Profile({ isDark = true }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('favorites');
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,8 +25,13 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
   const [bookmarksData, setBookmarksData] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [loadingBookmarks, setLoadingBookmarks] = useState(false);
-  const [isOwner, setIsOwner] = useState(false); // Add owner state
+  const [isOwner, setIsOwner] = useState(false);
   const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [activityData, setActivityData] = useState([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [userLists, setUserLists] = useState({});
+  const [loadingLists, setLoadingLists] = useState(false);
+  const [selectedListType, setSelectedListType] = useState('current');
 
   
   // Onboarding form state
@@ -51,6 +57,71 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
       fetchBookmarksData();
     }
   }, [userData]);
+
+  // Fetch activity when tab changes
+  useEffect(() => {
+    if (activeTab === 'activity' && currentUser) {
+      fetchActivityData();
+    }
+    if (activeTab === 'stats' && currentUser) {
+      fetchUserLists();
+    }
+  }, [activeTab, currentUser]);
+
+  const fetchUserLists = async () => {
+    setLoadingLists(true);
+    try {
+      const { data: lists, error } = await supabase
+        .from('user_lists')
+        .select('*')
+        .eq('user_id', currentUser.id);
+
+      if (error) throw error;
+
+      // Group by status
+      const grouped = {
+        viewed: [],
+        current: [],
+        planned: [],
+        awaiting: [],
+        delayed: [],
+        dropped: []
+      };
+
+      if (lists && lists.length > 0) {
+        // Fetch content details for each list item
+        for (const listItem of lists) {
+          try {
+            const result = await getJsonFile(listItem.content_uid);
+            if (result) {
+              const item = {
+                uid: listItem.content_uid,
+                status: listItem.status,
+                addedAt: listItem.updated_at,
+                title: result.item.title,
+                poster: result.item.poster,
+                type: listItem.content_type,
+                rating: result.item.rating || 'N/A',
+                episodes: result.item.episodes || result.item.chapters || 'N/A',
+              };
+
+              if (grouped[listItem.status]) {
+                grouped[listItem.status].push(item);
+              }
+            }
+          } catch (err) {
+            console.error(`Error fetching data for UID ${listItem.content_uid}:`, err);
+          }
+        }
+      }
+
+      setUserLists(grouped);
+    } catch (error) {
+      console.error('Error fetching user lists:', error);
+    } finally {
+      setLoadingLists(false);
+    }
+  };
 
   const checkUserAndLoadData = async () => {
     try {
@@ -201,6 +272,60 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
     }
   };
 
+  // Fetch activity when tab changes
+  useEffect(() => {
+    if (activeTab === 'activity' && currentUser) {
+      fetchActivityData();
+    }
+  }, [activeTab, currentUser]);
+
+  const fetchActivityData = async () => {
+    setLoadingActivity(true);
+    try {
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      if (reviews && reviews.length > 0) {
+        const activities = [];
+
+        for (const review of reviews) {
+          try {
+            const result = await getJsonFile(review.item_uid);
+            if (result) {
+              activities.push({
+                id: review.id,
+                item_uid: review.item_uid,
+                item_category: review.item_category,
+                rating: review.rating,
+                review_text: review.review_text,
+                created_at: review.created_at,
+                likes: review.likes || 0,
+                dislikes: review.dislikes || 0,
+                title: result.item.title,
+                poster: result.item.poster,
+                type: result.category,
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching data for UID ${review.item_uid}:`, err);
+          }
+        }
+
+        setActivityData(activities);
+      }
+    } catch (error) {
+      console.error('Error fetching activity:', error);
+    } finally {
+      setLoadingActivity(false);
+    }
+  };
+
   const checkIfOwner = (username) => {
     return username?.toLowerCase() === 'otaku-s-librarian';
   };
@@ -346,6 +471,20 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
     };
     return colors[type] || 'from-gray-500 to-gray-600';
   };
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    if (seconds < 2592000) return `${Math.floor(seconds / 604800)}w ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
 
   // Loading state
   if (loading) {
@@ -579,7 +718,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                   className={`w-full py-3 rounded-lg font-bold text-white text-sm transition-all ${
                     savingOnboarding || !onboardingData.profile_pic || !onboardingData.banner
                       ? 'bg-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
                   }`}
                 >
                   {savingOnboarding ? 'Saving...' : 'Complete Profile'}
@@ -707,31 +846,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-4">
-                  {[
-                    { label: 'Watched', value: userData.stats.totalWatched },
-                    { label: 'Read', value: userData.stats.totalRead },
-                    { label: 'Days', value: userData.stats.daysSpent },
-                    { label: 'Reviews', value: userData.stats.reviews },
-                  ].map((stat, i) => (
-                    <div key={i} className={`px-4 py-2 rounded-xl ${
-                      isOwner
-                        ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30'
-                        : isDark
-                        ? 'bg-white/5'
-                        : 'bg-black/5'
-                    } backdrop-blur-xl`}>
-                      <div className={`text-xl font-black ${
-                        isOwner
-                          ? 'text-yellow-400'
-                          : isDark
-                          ? 'text-white'
-                          : 'text-black'
-                      }`}>{stat.value}</div>
-                      <div className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
+          
               </div>
 
               <div className="flex gap-3 w-full sm:w-auto">
@@ -766,6 +881,13 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
             {/* Rest of existing profile content */}
             <div className="grid lg:grid-cols-12 gap-8">
               <div className="lg:col-span-4 space-y-6">
+                {/* Level & XP Card - NEW */}
+                <LevelXp 
+                  userId={currentUser?.id} 
+                  isDark={isDark}
+                />
+
+                {/* About Section */}
                 <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
                   <h3 className={`text-lg font-black mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
                     <User size={20} className="text-purple-400" />About
@@ -793,6 +915,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                   </div>
                 </div>
 
+                {/* Social Links */}
                 <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
                   <h3 className={`text-lg font-black mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
                     <Globe size={20} className="text-cyan-400" />Social Links
@@ -814,7 +937,9 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                   </div>
                 </div>
 
-                <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                
+                {/* Community Stats */}
+                <div className={`rounded-2xl p-6 mb-3 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
                   <h3 className={`text-lg font-black mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
                     <Sparkles size={20} className="text-pink-400" />Community
                   </h3>
@@ -830,6 +955,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                     ))}
                   </div>
                 </div>
+
               </div>
 
               <div className="lg:col-span-8">
@@ -865,7 +991,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                         {favoritesData.map((item) => (
                           <Link 
                             key={item.uid}
-                            href={`/anime/${item.uid}`}
+                            href={`/details/${item.uid}`}
                             className={`group relative rounded-2xl overflow-hidden transition-all hover:scale-105 cursor-pointer ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}
                           >
                             <div className="relative aspect-[3/4] overflow-hidden">
@@ -915,7 +1041,7 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                         {bookmarksData.map((item) => (
                           <a 
                             key={item.uid} 
-                            href={`/anime/${item.uid}`}
+                            href={`/details/${item.uid}`}
                             className={`group flex gap-4 p-4 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'bg-black/5 hover:bg-black/10 border border-black/10'} backdrop-blur-xl`}
                           >
                             <div className="relative w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden">
@@ -941,30 +1067,221 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
                 )}
 
                 {activeTab === 'activity' && (
-                  <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
-                    <TrendingUp size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                    <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>Activity Feed</h3>
-                    <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Your recent activity will appear here</p>
+                  <div>
+                    {loadingActivity ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className={isDark ? 'text-white/60' : 'text-black/60'}>Loading activity...</p>
+                      </div>
+                    ) : activityData.length === 0 ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                        <TrendingUp size={48} className={`mx-auto mb-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                        <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>No Activity Yet</h3>
+                        <p className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>Your recent activity will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {activityData.map((activity) => (
+                          <Link 
+                            key={activity.id}
+                            href={`/details/${activity.item_uid}`}
+                            className={`group flex gap-4 p-5 rounded-2xl transition-all hover:scale-[1.02] ${isDark ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'bg-black/5 hover:bg-black/10 border border-black/10'} backdrop-blur-xl`}
+                          >
+                            {/* Poster */}
+                            <div className="relative w-24 h-32 flex-shrink-0 rounded-xl overflow-hidden">
+                              <img 
+                                src={activity.poster} 
+                                alt={activity.title} 
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                              />
+                              <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-bold uppercase bg-gradient-to-r ${getTypeColor(activity.type)} text-white`}>
+                                {activity.type}
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className={`font-black text-lg mb-1 line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>
+                                    {activity.title}
+                                  </h4>
+                                  <p className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                                    Reviewed {formatTimeAgo(activity.created_at)}
+                                  </p>
+                                </div>
+                                
+                                {/* Rating Badge */}
+                                <div className={`flex-shrink-0 px-3 py-1.5 rounded-lg flex items-center gap-1 ${isDark ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-yellow-500/20 border border-yellow-500/30'}`}>
+                                  <Star size={14} className="text-yellow-400" fill="currentColor" />
+                                  <span className={`text-sm font-bold ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                                    {activity.rating}/10
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Review Text */}
+                              {activity.review_text && (
+                                <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-white/70' : 'text-black/70'}`}>
+                                  {activity.review_text}
+                                </p>
+                              )}
+
+                              {/* Stats */}
+                              <div className="flex items-center gap-4">
+                                
+
+                                <div className={`ml-auto px-3 py-1 rounded-lg ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-500/20 text-purple-600'} text-xs font-bold flex items-center gap-1`}>
+                                  <MessageCircle size={12} />
+                                  Review
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {activeTab === 'stats' && (
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    {[
-                      { label: 'Total Watched', value: userData.stats.totalWatched, icon: Eye, gradient: 'from-purple-500 to-pink-500' },
-                      { label: 'Total Read', value: userData.stats.totalRead, icon: BookOpen, gradient: 'from-cyan-500 to-blue-500' },
-                      { label: 'Days Spent', value: userData.stats.daysSpent, icon: Clock, gradient: 'from-pink-500 to-rose-500' },
-                      { label: 'Reviews Written', value: userData.stats.reviews, icon: MessageCircle, gradient: 'from-yellow-500 to-orange-500' },
-                    ].map((stat, i) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div key={i} className={`rounded-2xl p-6 bg-gradient-to-br ${stat.gradient} bg-opacity-20 border ${isDark ? 'border-white/10' : 'border-black/10'} backdrop-blur-xl`}>
-                          <Icon size={32} className="text-white mb-4" />
-                          <div className={`text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r ${stat.gradient}`}>{stat.value}</div>
-                          <div className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-black/80'}`}>{stat.label}</div>
+                 {activeTab === 'stats' && (
+                  <div className="space-y-8">
+                    
+
+                    {/* Lists Distribution Graph */}
+                    {loadingLists ? (
+                      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className={isDark ? 'text-white/60' : 'text-black/60'}>Loading your lists...</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Graph Section */}
+                        <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                          <h3 className={`text-xl font-black mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                            <Target size={24} className="text-purple-400" />
+                            My Lists Distribution
+                          </h3>
+                          
+                          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                            {[
+                              { key: 'current', label: 'Watching/Reading', color: 'from-emerald-500 to-green-500', icon: Play },
+                              { key: 'viewed', label: 'Completed', color: 'from-green-500 to-teal-500', icon: CheckCircle },
+                              { key: 'planned', label: 'Plan to Watch/Read', color: 'from-blue-500 to-cyan-500', icon: BookmarkPlus },
+                              { key: 'awaiting', label: 'Awaiting', color: 'from-amber-500 to-yellow-500', icon: Hourglass },
+                              { key: 'delayed', label: 'On Hold', color: 'from-purple-500 to-violet-500', icon: PauseCircle },
+                              { key: 'dropped', label: 'Dropped', color: 'from-red-500 to-rose-500', icon: XCircle },
+                            ].map((list) => {
+                              const Icon = list.icon;
+                              const count = userLists[list.key]?.length || 0;
+                              const total = Object.values(userLists).reduce((sum, arr) => sum + arr.length, 0);
+                              const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+                              return (
+                                <button
+                                  key={list.key}
+                                  onClick={() => setSelectedListType(list.key)}
+                                  className={`p-4 rounded-xl transition-all hover:scale-105 ${
+                                    selectedListType === list.key
+                                      ? `bg-gradient-to-r ${list.color} text-white shadow-lg`
+                                      : isDark
+                                      ? 'bg-white/5 hover:bg-white/10 text-white'
+                                      : 'bg-black/5 hover:bg-black/10 text-black'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Icon size={18} />
+                                    <span className="text-xs font-bold">{list.label}</span>
+                                  </div>
+                                  <div className="text-2xl font-black mb-1">{count}</div>
+                                  
+                                  {/* Progress Bar */}
+                                  <div className={`h-2 rounded-full overflow-hidden ${selectedListType === list.key ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-black/10'}`}>
+                                    <div
+                                      className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${list.color}`}
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                  <p className={`text-xs mt-1 ${selectedListType === list.key ? 'text-white/80' : isDark ? 'text-white/60' : 'text-black/60'}`}>
+                                    {percentage}% of total
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      );
-                    })}
+
+                        {/* Selected List Content */}
+                        <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+                          <h3 className={`text-xl font-black mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                            {selectedListType === 'current' && <><Play size={24} className="text-emerald-400" /> Currently Watching/Reading</>}
+                            {selectedListType === 'viewed' && <><CheckCircle size={24} className="text-green-400" /> Completed</>}
+                            {selectedListType === 'planned' && <><BookmarkPlus size={24} className="text-blue-400" /> Plan to Watch/Read</>}
+                            {selectedListType === 'awaiting' && <><Hourglass size={24} className="text-amber-400" /> Awaiting</>}
+                            {selectedListType === 'delayed' && <><PauseCircle size={24} className="text-purple-400" /> On Hold</>}
+                            {selectedListType === 'dropped' && <><XCircle size={24} className="text-red-400" /> Dropped</>}
+                            <span className={`ml-auto text-sm px-3 py-1 rounded-full ${isDark ? 'bg-white/10' : 'bg-black/10'}`}>
+                              {userLists[selectedListType]?.length || 0} items
+                            </span>
+                          </h3>
+
+                          {userLists[selectedListType]?.length === 0 ? (
+                            <div className="text-center py-12">
+                              <div className={`text-6xl mb-4 ${isDark ? 'opacity-20' : 'opacity-10'}`}>📋</div>
+                              <p className={`text-lg font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                                No items in this list yet
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                              {userLists[selectedListType]?.map((item) => (
+                                <Link
+                                  key={item.uid}
+                                  href={`/details/${item.uid}`}
+                                  className={`group relative rounded-xl overflow-hidden transition-all hover:scale-105 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}
+                                >
+                                  <div className="relative aspect-[3/4] overflow-hidden">
+                                    <img
+                                      src={item.poster}
+                                      alt={item.title}
+                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    />
+                                    <div className={`absolute inset-0 bg-gradient-to-t ${isDark ? 'from-black via-black/60 to-transparent' : 'from-white via-white/60 to-transparent'}`}></div>
+                                    
+                                    {/* Type Badge */}
+                                    <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-bold uppercase bg-gradient-to-r ${getTypeColor(item.type)} text-white`}>
+                                      {item.type}
+                                    </div>
+                                    
+                                    {/* Rating */}
+                                    {item.rating !== 'N/A' && (
+                                      <div className={`absolute top-2 right-2 px-2 py-1 rounded-full flex items-center gap-1 ${isDark ? 'bg-black/60' : 'bg-white/60'} backdrop-blur-xl`}>
+                                        <Star size={12} className="text-yellow-400" fill="currentColor" />
+                                        <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-black'}`}>{item.rating}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="p-3">
+                                    <h4 className={`font-black text-sm line-clamp-2 mb-1 ${isDark ? 'text-white' : 'text-black'}`}>
+                                      {item.title}
+                                    </h4>
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className={isDark ? 'text-white/60' : 'text-black/60'}>
+                                        {item.episodes !== 'N/A' && `${item.episodes} eps`}
+                                      </span>
+                                      <span className={`${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                                        {new Date(item.addedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -973,23 +1290,23 @@ export default function Profile({ isDark = true }) {  // ADD isDark PROP WITH DE
         </div>
       )}
 
-{showProfileEditor && (
-  <ProfileEditor
-    isDark={isDark}
-    userData={{
-      displayName: userData.displayName,
-      bio: userData.bio,
-      email: userData.email,
-      location: userData.location,
-      website: userData.website,
-      avatar: userData.avatar,
-      banner: userData.banner,
-    }}
-    currentUser={currentUser}
-    onClose={() => setShowProfileEditor(false)}
-    onSave={checkUserAndLoadData}
-  />
-)}
+      {showProfileEditor && (
+        <ProfileEditor
+          isDark={isDark}
+          userData={{
+            displayName: userData.displayName,
+            bio: userData.bio,
+            email: userData.email,
+            location: userData.location,
+            website: userData.website,
+            avatar: userData.avatar,
+            banner: userData.banner,
+          }}
+          currentUser={currentUser}
+          onClose={() => setShowProfileEditor(false)}
+          onSave={checkUserAndLoadData}
+        />
+      )}
     </>
   );
 }

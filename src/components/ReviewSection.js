@@ -53,43 +53,62 @@ export default function ReviewSection({ isDark, uid, category, currentUser }) {
       .from('reviews')
       .select('*')
       .eq('item_uid', uid)
-      .eq('item_category', category)  // ✅ Filter by category
+      .eq('item_category', category)
       .order('created_at', { ascending: false });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      // Load user data for all reviewers
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(r => r.user_id))];
-        const userData = await loadUserDataForReviews(userIds);
-        
-        // Map user data to reviews
-        const reviewsWithUsers = data.map(review => ({
-          ...review,
-          userData: userData.find(u => u.user_id === review.user_id)
-        }));
-        
-        setReviews(reviewsWithUsers);
+    // Load user data for all reviewers
+    if (data && data.length > 0) {
+      const userIds = [...new Set(data.map(r => r.user_id))];
+      const userData = await loadUserDataForReviews(userIds);
+      
+      // Get vote counts for all reviews
+      const reviewIds = data.map(r => r.id);
+      const { data: votes, error: votesError } = await supabase
+        .from('review_votes')
+        .select('review_id, vote_type');
 
-        // Check if current user has a review
-        if (currentUser) {
-          const userRev = reviewsWithUsers.find(r => r.user_id === currentUser.id);
-          if (userRev) {
-            setUserReview(userRev);
-            setRating(userRev.rating);
-            setReviewText(userRev.review_text || '');
-          }
+      if (votesError) console.error('Error loading votes:', votesError);
+
+      // Calculate vote counts
+      const voteCounts = {};
+      reviewIds.forEach(id => {
+        voteCounts[id] = {
+          likes: votes?.filter(v => v.review_id === id && v.vote_type === 'like').length || 0,
+          dislikes: votes?.filter(v => v.review_id === id && v.vote_type === 'dislike').length || 0,
+        };
+      });
+
+      // Map user data and vote counts to reviews
+      const reviewsWithData = data.map(review => ({
+        ...review,
+        userData: userData.find(u => u.user_id === review.user_id),
+        likes: voteCounts[review.id]?.likes || 0,
+        dislikes: voteCounts[review.id]?.dislikes || 0,
+      }));
+      
+      setReviews(reviewsWithData);
+
+      // Check if current user has a review
+      if (currentUser) {
+        const userRev = reviewsWithData.find(r => r.user_id === currentUser.id);
+        if (userRev) {
+          setUserReview(userRev);
+          setRating(userRev.rating);
+          setReviewText(userRev.review_text || '');
         }
-      } else {
-        setReviews(data || []);
       }
-    } catch (err) {
-      console.error('Error loading reviews:', err);
-      setError('Failed to load reviews');
-    } finally {
-      setLoading(false);
+    } else {
+      setReviews(data || []);
     }
-  };
+  } catch (err) {
+    console.error('Error loading reviews:', err);
+    setError('Failed to load reviews');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Replace the updateAverageRating function with this improved version
 const updateAverageRating = async (itemUid) => {
@@ -286,6 +305,7 @@ const updateAverageRating = async (itemUid) => {
     }
   };
 
+  // Replace the handleVoteReview function with this updated version
   const handleVoteReview = async (reviewId, voteType) => {
     if (!currentUser) {
       setError('Please login to vote');
@@ -303,16 +323,20 @@ const updateAverageRating = async (itemUid) => {
 
       // If clicking the same vote, remove it
       if (currentVote === voteType) {
-        await supabase
+        const { error } = await supabase
           .from('review_votes')
           .delete()
           .eq('review_id', reviewId)
           .eq('user_id', currentUser.id);
 
+        if (error) throw error;
+
         setUserVotes(prev => ({
           ...prev,
           [reviewId]: null
         }));
+
+        console.log(`Removed ${voteType} from review ${reviewId}`);
       } else {
         // Upsert the vote (insert or update)
         const { error } = await supabase
@@ -332,10 +356,12 @@ const updateAverageRating = async (itemUid) => {
           ...prev,
           [reviewId]: voteType
         }));
+
+        console.log(`Added ${voteType} to review ${reviewId}`);
       }
 
-      // Recalculate vote counts
-      loadReviews();
+      // Reload reviews to get updated vote counts
+      await loadReviews();
     } catch (err) {
       console.error('Error voting on review:', err);
       setError('Failed to save vote');

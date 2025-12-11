@@ -12,6 +12,7 @@ import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
+import List from '@/components/List';
 
 export default function MangaUI({isDark = true}) {
   const { uid } = useParams();
@@ -518,7 +519,7 @@ export default function MangaUI({isDark = true}) {
         <div className="absolute bottom-0 left-0 right-0 px-5 sm:p-12 sm:mt-4 z-30">
           <div className="container mx-auto grid lg:grid-cols-14 gap-10">
             {/* Poster */}
-            <div className="lg:col-span-3 flex justify-center lg:justify-start - mt-8 lg:mb-0">
+            <div className="lg:col-span-3 flex z-25 justify-center lg:justify-start - mt-8 lg:mb-0">
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
                 <img
@@ -654,8 +655,20 @@ export default function MangaUI({isDark = true}) {
         {activeTab === 'overview' && (
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
+              <div className={`rounded-2xl p-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl animate-fade-in`} style={{ animationDelay: '0.3s' }}>
+                            <h3 className={`text-sm font-black mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'} uppercase tracking-wide`}>
+                              <Bookmark size={16} className="text-purple-400" />
+                              My List
+                            </h3>
+                            <List
+                              uid={uid}
+                              contentType="manga"
+                              currentUser={currentUser}
+                              isDark={isDark}
+                            />
+                          </div>
               {/* Synopsis */}
-              <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl mb-8`}>
+              <div className={`rounded-2xl p-6 mt-8 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl mb-8`}>
                 <h3 className={`text-xl font-black mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Synopsis</h3>
                 <p className={`leading-relaxed whitespace-pre-wrap ${isDark ? 'text-white/80' : 'text-black/80'}`}>
                   {showFullSynopsis ? synopsis : `${synopsis.substring(0, 300)}...`}
