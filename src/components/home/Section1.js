@@ -5,12 +5,19 @@ import Link from 'next/link';
 import { Tv, BookOpen, Book, TrendingUp, Sparkles, Zap, ChevronRight, Bell, Calendar, Star, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../app/contexts/ThemeContext';
+import { supabase } from '@/supabaseClient';
 
 export default function HeroSection() {
   const router = useRouter();
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [currentNotice, setCurrentNotice] = useState(0);
+  const [stats, setStats] = useState([
+    { number: '0', label: 'Active Users', icon: Users },
+    { number: '0', label: 'Titles', icon: Star },
+    { number: '0', label: 'Reviews', icon: Sparkles },
+    { number: '0', label: 'Lists Created', icon: TrendingUp },
+  ]);
 
   const features = [
     {
@@ -67,12 +74,74 @@ export default function HeroSection() {
     },
   ];
 
-  const stats = [
-    { number: '50K+', label: 'Active Users', icon: Users },
-    { number: '200K+', label: 'Titles', icon: Star },
-    { number: '1M+', label: 'Reviews', icon: Sparkles },
-    { number: '500K+', label: 'Lists Created', icon: TrendingUp },
-  ];
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M+';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K+';
+    }
+    return num.toString();
+  };
+
+  // Fetch real stats from database
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch active users count from user_data table
+        const { count: usersCount, error: usersError } = await supabase
+          .from('user_data')
+          .select('*', { count: 'exact', head: true });
+        
+        if (usersError) {
+          console.log('Error fetching users:', usersError);
+        }
+
+        // Fetch titles count from all tables
+        const tables = ['Ani_data', 'Manga_data', 'Manhwa_data', 'Manhua_data', 'Donghua_data', 'Webnovel_data'];
+        let totalTitles = 0;
+        
+        for (const table of tables) {
+          const { count, error } = await supabase
+            .from(table)
+            .select('*', { count: 'exact', head: true });
+          if (count && !error) totalTitles += count;
+          if (error) console.log(`Error fetching ${table}:`, error);
+        }
+
+        // Fetch reviews count
+        const { count: reviewsCount, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true });
+        
+        if (reviewsError) console.log('Reviews table error:', reviewsError);
+
+        // Count TWIST lists (hardcoded usernames for now)
+        const twistUsernames = ['alice', 'bob', 'charlie']; // Update this list as you add more users
+        let twistCount = 0;
+        for (const username of twistUsernames) {
+          try {
+            const response = await fetch(`/JSON/TWIST/${username}.json`);
+            if (response.ok) twistCount++;
+          } catch (error) {
+            console.log(`Could not verify ${username}`);
+          }
+        }
+
+        // Update stats
+        setStats([
+          { number: formatNumber(usersCount || 0), label: 'Active Users', icon: Users },
+          { number: formatNumber(totalTitles), label: 'Titles', icon: Star },
+          { number: formatNumber(reviewsCount || 0), label: 'Reviews', icon: Sparkles },
+          { number: formatNumber(twistCount), label: 'Lists Created', icon: TrendingUp },
+        ]);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Keep default values on error
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {

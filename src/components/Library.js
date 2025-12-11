@@ -621,7 +621,7 @@ demoItems.push({
                     
                   </Link>
                   
-                  <button className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
+                  <button onClick={() => window.open("https://github.com/Darkstrike03/Otaku-s-Library", "_blank")} className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
                     isDark ? 'bg-white/10 hover:bg-white/20 text-white border-2 border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border-2 border-black/20'
                   } backdrop-blur-xl`}>
                     <Plus size={20} />

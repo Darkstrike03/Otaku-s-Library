@@ -2,10 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Github, Twitter, Mail, Music, Heart, Sparkles, TrendingUp, BookOpen, Tv, Book, Users, Star, MessageCircle } from 'lucide-react';
+import { Github, Twitter, Mail, Music, Heart, Sparkles, TrendingUp, BookOpen, Tv, Book, Users, Star, MessageCircle, AlertTriangle, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { supabase } from '@/supabaseClient';
 
 export default function Footer({ isDark }) {
-  const [email, setEmail] = useState('');
+  const [reportExpanded, setReportExpanded] = useState(false);
+  const [reportData, setReportData] = useState({
+    type: 'bug',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentYear = new Date().getFullYear();
 
@@ -13,7 +19,7 @@ export default function Footer({ isDark }) {
     browse: [
       { name: 'Anime', icon: Tv, href: '/library/anime' },
       { name: 'Manga', icon: BookOpen, href: '/library/manga' },
-      { name: 'Novels', icon: Book, href: '/library/novels' },
+      { name: 'Novels', icon: Book, href: '/library/webnovels' },
       { name: 'Trending', icon: TrendingUp, href: '/library' },
     ],
     community: [
@@ -23,10 +29,10 @@ export default function Footer({ isDark }) {
       { name: 'Recommendations', icon: Heart, href: '#' },
     ],
     company: [
-      { name: 'About Us', href: '#' },
-      { name: 'Contact', href: '#' },
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
+      { name: 'About Us', href: '/about' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
     ],
   };
 
@@ -35,6 +41,38 @@ export default function Footer({ isDark }) {
     { icon: MessageCircle, label: 'Discord', href: '#' },
     { icon: Github, label: 'GitHub', href: 'https://github.com/Darkstrike03/Otaku-s-Library' },
   ];
+
+  const handleReportSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Save report to Supabase
+      const { data, error } = await supabase
+        .from('reports')
+        .insert([
+          {
+            type: reportData.type,
+            message: reportData.message,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Error submitting report:', error);
+        alert('Failed to submit report. Please try again or contact us directly.');
+      } else {
+        alert('Thank you for your report! We\'ll look into it.');
+        setReportData({ type: 'bug', message: '' });
+        setReportExpanded(false);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to submit report. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className={`transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-white'}`}>
@@ -97,35 +135,91 @@ export default function Footer({ isDark }) {
                 Your ultimate destination for tracking anime, manga, and light novels. Join thousands of otaku worldwide in building your perfect library.
               </p>
 
-              <div className="relative group">
-                <div className={`absolute -inset-0.5 ${
-                  isDark 
-                    ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600' 
-                    : 'bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500'
-                } rounded-full opacity-30 group-hover:opacity-100 blur-sm transition-all duration-500`}></div>
+              {/* Report Section */}
+              <div className={`rounded-2xl overflow-hidden ${
+                isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'
+              } backdrop-blur-xl transition-all duration-300`}>
+                <button
+                  onClick={() => setReportExpanded(!reportExpanded)}
+                  className={`w-full p-4 flex items-center justify-between transition-all duration-300 ${
+                    isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle size={20} className={`${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`} />
+                    <span className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>
+                      Report an Issue
+                    </span>
+                  </div>
+                  {reportExpanded ? (
+                    <ChevronUp size={20} className={isDark ? 'text-white/60' : 'text-black/60'} />
+                  ) : (
+                    <ChevronDown size={20} className={isDark ? 'text-white/60' : 'text-black/60'} />
+                  )}
+                </button>
                 
-                <div className="relative flex">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className={`flex-1 px-4 py-2.5 rounded-l-full text-sm font-medium transition-all duration-300 ${
-                      isDark 
-                        ? 'bg-white/5 text-white placeholder-white/40 focus:bg-white/10' 
-                        : 'bg-black/5 text-black placeholder-black/40 focus:bg-black/10'
-                    } backdrop-blur-xl outline-none border-2 ${
-                      isDark ? 'border-white/10 focus:border-white/20' : 'border-black/10 focus:border-black/20'
-                    } border-r-0`}
-                  />
-                  <button className={`px-4 sm:px-6 py-2.5 rounded-r-full text-sm font-bold transition-all duration-300 ${
-                    isDark 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white' 
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
-                  } flex items-center gap-2 hover:scale-105`}>
-                    <Mail size={16} />
-                    <span className="hidden sm:inline">Subscribe</span>
-                  </button>
+                <div className={`overflow-hidden transition-all duration-300 ${
+                  reportExpanded ? 'max-h-96' : 'max-h-0'
+                }`}>
+                  <form onSubmit={handleReportSubmit} className="p-4 pt-0 space-y-4">
+                    <div>
+                      <label className={`block text-sm font-bold mb-2 ${
+                        isDark ? 'text-white/80' : 'text-black/80'
+                      }`}>
+                        Issue Type
+                      </label>
+                      <select
+                        value={reportData.type}
+                        onChange={(e) => setReportData({ ...reportData, type: e.target.value })}
+                        className={`w-full px-4 py-2.5 rounded-xl text-sm ${
+                          isDark 
+                            ? 'bg-white/5 text-white border border-white/10' 
+                            : 'bg-black/5 text-black border border-black/10'
+                        } outline-none focus:border-orange-500 transition-all duration-300`}
+                      >
+                        <option value="bug">Bug Report</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="content">Content Issue</option>
+                        <option value="abuse">Report Abuse</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-bold mb-2 ${
+                        isDark ? 'text-white/80' : 'text-black/80'
+                      }`}>
+                        Description
+                      </label>
+                      <textarea
+                        value={reportData.message}
+                        onChange={(e) => setReportData({ ...reportData, message: e.target.value })}
+                        required
+                        placeholder="Please describe the issue..."
+                        rows={4}
+                        className={`w-full px-4 py-2.5 rounded-xl text-sm ${
+                          isDark 
+                            ? 'bg-white/5 text-white placeholder-white/40 border border-white/10' 
+                            : 'bg-black/5 text-black placeholder-black/40 border border-black/10'
+                        } outline-none focus:border-orange-500 transition-all duration-300 resize-none`}
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                        isDark 
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white' 
+                          : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white'
+                      } flex items-center justify-center gap-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <Send size={16} />
+                      {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>
