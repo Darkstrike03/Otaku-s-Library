@@ -30,17 +30,16 @@ export const metadata = {
   publisher: "Otaku's Library",
   applicationName: "Otaku's Library",
   
-  // Open Graph metadata for social sharing
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://otaku-s-library.vercel.app',
+    url: 'https://otakulibrary.com',
     siteName: "Otaku's Library",
     title: "Otaku's Library - Your Ultimate Anime, Manga & Light Novel Tracker",
     description: "Track anime, manga, manhwa, manhua, donghua, and web novels all in one place. Join thousands of otaku worldwide with personalized lists, reviews, and recommendations.",
     images: [
       {
-        url: '/og-image.png', // You'll need to create this image
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: "Otaku's Library - All-in-One Otaku Platform",
@@ -49,7 +48,6 @@ export const metadata = {
     ],
   },
   
-  // Twitter Card metadata
   twitter: {
     card: 'summary_large_image',
     title: "Otaku's Library - Your Ultimate Anime, Manga & Light Novel Tracker",
@@ -58,7 +56,6 @@ export const metadata = {
     images: ['/og-image.png'],
   },
   
-  // Additional metadata
   robots: {
     index: true,
     follow: true,
@@ -71,19 +68,10 @@ export const metadata = {
     },
   },
   
-  // Verification tags (add your actual verification codes)
-  verification: {
-    // google: 'your-google-verification-code',
-    // yandex: 'your-yandex-verification-code',
-    // bing: 'your-bing-verification-code',
-  },
-  
-  // Alternate languages (if you support multiple languages)
   alternates: {
-    canonical: 'https://otakulibrary.com',
+    canonical: 'https://otaku-s-library.vercel.app',
   },
   
-  // Category
   category: 'entertainment',
 };
 
