@@ -13,8 +13,10 @@ import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
+import {useTheme} from '../../app/contexts/ThemeContext';
 
-export default function MangaUI({isDark = true}) {
+export default function MangaUI() {
+  const { isDark } = useTheme();
   const { uid } = useParams();
   const router = useRouter();
   const [mangaData, setMangaData] = useState(null);

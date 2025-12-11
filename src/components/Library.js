@@ -1,17 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/supabaseClient';
+import Link from 'next/link';
+
 import {
   Grid, List, Search, SlidersHorizontal, ChevronDown, Star, Clock, BookOpen, Tv, Book,
-  Sparkles, TrendingUp, Filter, X, Heart, MessageCircle, Plus
+  Sparkles, TrendingUp, Filter, X, Heart, MessageCircle, Plus, Loader2
 } from 'lucide-react';
+import { useTheme } from '../app/contexts/ThemeContext';
 
-export default function Library() {
-  const [isDark, setIsDark] = useState(true);
+export default function Library({ initialCategory = 'all' }) {
+  const { isDark } = useTheme();
   const [viewMode, setViewMode] = useState('grid');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sortBy, setSortBy] = useState('title');
   const [searchQuery, setSearchQuery] = useState('');
   const [libraryData, setLibraryData] = useState([]);
@@ -20,6 +23,9 @@ export default function Library() {
   const [selectedLetter, setSelectedLetter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [expandedCard, setExpandedCard] = useState(null); // Track expanded card
+  const [displayCount, setDisplayCount] = useState(20); // Number of items to display
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef(null);
   const router = useRouter();
 
   const categories = [
@@ -45,9 +51,49 @@ export default function Library() {
     loadLibraryData();
   }, []);
 
+  // Update category when initialCategory prop changes
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
   useEffect(() => {
     filterAndSortData();
   }, [libraryData, selectedCategory, sortBy, searchQuery, selectedLetter]);
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore && displayCount < filteredData.length) {
+          loadMoreItems();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [displayCount, filteredData.length, isLoadingMore]);
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(20);
+  }, [selectedCategory, sortBy, searchQuery, selectedLetter]);
+
+  const loadMoreItems = useCallback(() => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setDisplayCount(prev => Math.min(prev + 20, filteredData.length));
+      setIsLoadingMore(false);
+    }, 300);
+  }, [filteredData.length]);
 
   // Fetch data from Supabase
   const loadLibraryData = async () => {
@@ -169,6 +215,45 @@ demoItems.push({
     setExpandedCard(expandedCard === id ? null : id); // Toggle expanded card
   };
 
+  // Lazy loading image component
+  const LazyImage = ({ src, alt, className }) => {
+    const [imageSrc, setImageSrc] = useState('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600"%3E%3Crect width="400" height="600" fill="%23222"%3E%3C/rect%3E%3C/svg%3E');
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const imgRef = useRef(null);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setImageSrc(src);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: '100px' }
+      );
+
+      if (imgRef.current) {
+        observer.observe(imgRef.current);
+      }
+
+      return () => {
+        if (imgRef.current) {
+          observer.disconnect();
+        }
+      };
+    }, [src]);
+
+    return (
+      <img
+        ref={imgRef}
+        src={imageSrc}
+        alt={alt}
+        className={`${className} ${!imageLoaded ? 'blur-sm' : ''} transition-all duration-300`}
+        onLoad={() => setImageLoaded(true)}
+      />
+    );
+  };
+
   const GridCard = ({ item }) => (
   <div
     className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${
@@ -182,7 +267,7 @@ demoItems.push({
     <div className={`relative overflow-hidden transition-all duration-500 ${
       expandedCard === item.id ? 'h-64' : 'aspect-[3/4]'
     }`}>
-      <img 
+      <LazyImage 
         src={item.poster} 
         alt={item.title} 
         className={`w-full h-full object-cover transition-all duration-500 ${
@@ -291,7 +376,7 @@ demoItems.push({
   } hover:scale-[1.02] active:scale-95`}
 >
   <BookOpen size={16} className="group-hover:rotate-12 transition-transform duration-300" />
-  View Full Details
+  Details
   <ChevronDown size={16} className="-rotate-90 group-hover:translate-x-1 transition-transform duration-300" />
 </button>
     </div>
@@ -310,7 +395,7 @@ demoItems.push({
       isDark ? 'bg-white/5 hover:bg-white/10 border border-white/10' : 'bg-black/5 hover:bg-black/10 border border-black/10'
     } backdrop-blur-xl`}>
       <div className="relative w-24 h-32 flex-shrink-0 rounded-xl overflow-hidden">
-        <img src={item.poster} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        <LazyImage src={item.poster} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold ${
           isDark ? 'bg-black/80' : 'bg-white/80'
         } backdrop-blur-xl`}>
@@ -478,10 +563,35 @@ demoItems.push({
         ) : (
           <>
             <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6' : 'space-y-4'}>
-              {filteredData.map(item => (
+              {filteredData.slice(0, displayCount).map(item => (
                 viewMode === 'grid' ? <GridCard key={item.id} item={item} /> : <ListItem key={item.id} item={item} />
               ))}
             </div>
+
+            {/* Load More Trigger */}
+            {displayCount < filteredData.length && (
+              <div ref={loadMoreRef} className="flex justify-center items-center py-12">
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 size={24} className={`${isDark ? 'text-purple-400' : 'text-purple-600'} animate-spin`} />
+                    <span className={`text-lg font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                      Loading more...
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={loadMoreItems}
+                    className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 ${
+                      isDark 
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/20' 
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/30'
+                    }`}
+                  >
+                    Load More ({filteredData.length - displayCount} remaining)
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* End Message */}
             <div className={`mt-16 p-8 sm:p-12 rounded-3xl text-center relative overflow-hidden ${
@@ -505,10 +615,11 @@ demoItems.push({
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button className="group px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                  <Link href="/suggest" className="group px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center gap-2">
                     <MessageCircle size={20} />
                     Let Us Know
-                  </button>
+                    
+                  </Link>
                   
                   <button className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
                     isDark ? 'bg-white/10 hover:bg-white/20 text-white border-2 border-white/20' : 'bg-black/10 hover:bg-black/20 text-black border-2 border-black/20'

@@ -1,0 +1,77 @@
+{
+  "username": "bob",
+  "displayName": "Bob Ross",
+  "avatar": "https://i.pravatar.cc/150?img=12",
+  "bio": "Donghua & Manhua lover 🎨",
+  "favorites": {
+    "donghua": [
+      {
+        "id": 1,
+        "uid": "1D",
+        "title": "Link Click",
+        "image": "https://i.ibb.co/XFy3W7J/link-click.jpg",
+        "rating": 8.9,
+        "status": "Ongoing",
+        "episodes": 22
+      },
+      {
+        "id": 2,
+        "uid": "2D",
+        "title": "Fog Hill of Five Elements",
+        "image": "https://i.ibb.co/VHnzQyT/fog-hill.jpg",
+        "rating": 8.7,
+        "status": "Ongoing",
+        "episodes": 6
+      },
+      {
+        "id": 3,
+        "uid": "3D",
+        "title": "The Daily Life of the Immortal King",
+        "image": "https://i.ibb.co/kMvBz8R/immortal-king.jpg",
+        "rating": 8.5,
+        "status": "Ongoing",
+        "episodes": 30
+      }
+    ],
+    "manhua": [
+      {
+        "id": 1,
+        "uid": "1U",
+        "title": "Tales of Demons and Gods",
+        "image": "https://i.ibb.co/Jp7fXQg/tales-demons.jpg",
+        "rating": 8.5,
+        "status": "Ongoing",
+        "chapters": 450
+      },
+      {
+        "id": 2,
+        "uid": "2U",
+        "title": "Soul Land",
+        "image": "https://i.ibb.co/pj3Lm8Y/soul-land.jpg",
+        "rating": 8.6,
+        "status": "Completed",
+        "chapters": 330
+      },
+      {
+        "id": 3,
+        "uid": "3U",
+        "title": "Martial Peak",
+        "image": "https://i.ibb.co/FXk7Nqw/martial-peak.jpg",
+        "rating": 8.3,
+        "status": "Ongoing",
+        "chapters": 3800
+      }
+    ],
+    "webnovels": [
+      {
+        "id": 1,
+        "uid": "1W",
+        "title": "Lord of the Mysteries",
+        "image": "https://i.ibb.co/5hRdMXy/lord-mysteries.jpg",
+        "rating": 9.3,
+        "status": "Completed",
+        "chapters": 1394
+      }
+    ]
+  }
+}

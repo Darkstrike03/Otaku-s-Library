@@ -2,9 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTheme } from '../../app/contexts/ThemeContext';
 import { Crown, Sparkles, Star, TrendingUp, Heart, Eye, BookmarkPlus, Play, ChevronRight } from 'lucide-react';
 
-export default function LibrarianPicks({ isDark }) {
+export default function LibrarianPicks() {
+  const { isDark } = useTheme();
+  const router = useRouter();
   const [picksData, setPicksData] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [filter, setFilter] = useState('all');
@@ -32,18 +36,18 @@ export default function LibrarianPicks({ isDark }) {
   // Demo data structure
   const getDemoData = () => ({
     picks: [
-      { id: 1, title: 'Frieren: Beyond Journey\'s End', type: 'anime', image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400', rating: 9.2, reason: 'Beautiful storytelling and character development', tags: ['Fantasy', 'Adventure', 'Drama'] },
-      { id: 2, title: 'Solo Leveling', type: 'manhwa', image: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400', rating: 9.1, reason: 'Epic power progression and stunning art', tags: ['Action', 'Fantasy', 'Overpowered'] },
-      { id: 3, title: 'Omniscient Reader\'s Viewpoint', type: 'webnovel', image: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=400', rating: 9.3, reason: 'Mind-blowing plot twists and world-building', tags: ['Fantasy', 'System', 'Mystery'] },
-      { id: 4, title: 'Berserk', type: 'manga', image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', rating: 9.5, reason: 'Masterpiece of dark fantasy and art', tags: ['Dark Fantasy', 'Seinen', 'Action'] },
-      { id: 5, title: 'Link Click', type: 'donghua', image: 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=400', rating: 8.9, reason: 'Unique time travel concept with emotional depth', tags: ['Thriller', 'Mystery', 'Time Travel'] },
-      { id: 6, title: 'Tales of Demons and Gods', type: 'manhua', image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400', rating: 8.6, reason: 'Satisfying revenge story with cultivation', tags: ['Cultivation', 'Reincarnation', 'Action'] },
-      { id: 7, title: 'Chainsaw Man', type: 'manga', image: 'https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=400', rating: 8.9, reason: 'Bold and unconventional storytelling', tags: ['Action', 'Horror', 'Comedy'] },
-      { id: 8, title: 'The Beginning After The End', type: 'manhwa', image: 'https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=400', rating: 8.9, reason: 'Perfect blend of magic and martial arts', tags: ['Fantasy', 'Reincarnation', 'Magic'] },
-      { id: 9, title: 'Lord of the Mysteries', type: 'webnovel', image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400', rating: 9.4, reason: 'Incredibly intricate world and mystery elements', tags: ['Mystery', 'Steampunk', 'Fantasy'] },
-      { id: 10, title: 'Attack on Titan', type: 'anime', image: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=400', rating: 9.0, reason: 'Revolutionary storytelling and plot twists', tags: ['Action', 'Mystery', 'Dark'] },
-      { id: 11, title: 'Tower of God', type: 'manhwa', image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', rating: 8.7, reason: 'Expansive world with complex power system', tags: ['Fantasy', 'Adventure', 'Mystery'] },
-      { id: 12, title: 'Jujutsu Kaisen', type: 'anime', image: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400', rating: 8.9, reason: 'Modern classic with amazing fight choreography', tags: ['Action', 'Supernatural', 'Shounen'] },
+      { id: 1, uid: '6A', title: 'Frieren: Beyond Journey\'s End', type: 'anime', image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400', rating: 9.2, reason: 'Beautiful storytelling and character development', tags: ['Fantasy', 'Adventure', 'Drama'] },
+      { id: 2, uid: '2H', title: 'Solo Leveling', type: 'manhwa', image: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400', rating: 9.1, reason: 'Epic power progression and stunning art', tags: ['Action', 'Fantasy', 'Overpowered'] },
+      { id: 3, uid: '2W', title: 'Omniscient Reader\'s Viewpoint', type: 'webnovel', image: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=400', rating: 9.3, reason: 'Mind-blowing plot twists and world-building', tags: ['Fantasy', 'System', 'Mystery'] },
+      { id: 4, uid: '6M', title: 'Berserk', type: 'manga', image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', rating: 9.5, reason: 'Masterpiece of dark fantasy and art', tags: ['Dark Fantasy', 'Seinen', 'Action'] },
+      { id: 5, uid: '1D', title: 'Link Click', type: 'donghua', image: 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=400', rating: 8.9, reason: 'Unique time travel concept with emotional depth', tags: ['Thriller', 'Mystery', 'Time Travel'] },
+      { id: 6, uid: '1U', title: 'Tales of Demons and Gods', type: 'manhua', image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400', rating: 8.6, reason: 'Satisfying revenge story with cultivation', tags: ['Cultivation', 'Reincarnation', 'Action'] },
+      { id: 7, uid: '9A', title: 'Chainsaw Man', type: 'manga', image: 'https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?w=400', rating: 8.9, reason: 'Bold and unconventional storytelling', tags: ['Action', 'Horror', 'Comedy'] },
+      { id: 8, uid: '4H', title: 'The Beginning After The End', type: 'manhwa', image: 'https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=400', rating: 8.9, reason: 'Perfect blend of magic and martial arts', tags: ['Fantasy', 'Reincarnation', 'Magic'] },
+      { id: 9, uid: '1W', title: 'Lord of the Mysteries', type: 'webnovel', image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400', rating: 9.4, reason: 'Incredibly intricate world and mystery elements', tags: ['Mystery', 'Steampunk', 'Fantasy'] },
+      { id: 10, uid: '1A', title: 'Attack on Titan', type: 'anime', image: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=400', rating: 9.0, reason: 'Revolutionary storytelling and plot twists', tags: ['Action', 'Mystery', 'Dark'] },
+      { id: 11, uid: '5H', title: 'Tower of God', type: 'manhwa', image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', rating: 8.7, reason: 'Expansive world with complex power system', tags: ['Fantasy', 'Adventure', 'Mystery'] },
+      { id: 12, uid: '4A', title: 'Jujutsu Kaisen', type: 'anime', image: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400', rating: 8.9, reason: 'Modern classic with amazing fight choreography', tags: ['Action', 'Supernatural', 'Shounen'] },
     ]
   });
 
@@ -278,7 +282,7 @@ export default function LibrarianPicks({ isDark }) {
 
         {/* View More Button */}
         <div className="text-center mt-12">
-          <Link href="/all-picks">
+          <Link href="/twist/alice">
             <button className={`group px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:shadow-2xl`}>
               <span className="flex items-center gap-2">
                 <Crown size={20} />
@@ -372,7 +376,10 @@ export default function LibrarianPicks({ isDark }) {
                 ))}
               </div>
 
-              <button className={`w-full py-3 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r ${getTypeColor(selectedItem.type)} text-white hover:scale-105`}>
+              <button 
+                onClick={() => router.push(`/details/${selectedItem.uid}`)}
+                className={`w-full py-3 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r ${getTypeColor(selectedItem.type)} text-white hover:scale-105`}
+              >
                 View Details
               </button>
             </div>

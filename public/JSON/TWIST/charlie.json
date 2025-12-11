@@ -1,0 +1,106 @@
+{
+  "username": "charlie",
+  "displayName": "Charlie Chen",
+  "avatar": "https://i.pravatar.cc/150?img=33",
+  "bio": "Reading everything I can find! 📖",
+  "favorites": {
+    "anime": [
+      {
+        "id": 1,
+        "uid": "9A",
+        "title": "Made in Abyss",
+        "image": "https://i.ibb.co/QdGW7Pr/made-in-abyss.jpg",
+        "rating": 8.8,
+        "status": "Ongoing",
+        "episodes": 25
+      },
+      {
+        "id": 2,
+        "uid": "10A",
+        "title": "Violet Evergarden",
+        "image": "https://i.ibb.co/mRQz8Hq/violet-evergarden.jpg",
+        "rating": 8.7,
+        "status": "Completed",
+        "episodes": 13
+      }
+    ],
+    "manga": [
+      {
+        "id": 1,
+        "uid": "4M",
+        "title": "Goodnight Punpun",
+        "image": "https://i.ibb.co/9HzTbY6/punpun.jpg",
+        "rating": 8.9,
+        "status": "Completed",
+        "chapters": 147
+      },
+      {
+        "id": 2,
+        "uid": "5M",
+        "title": "Monster",
+        "image": "https://i.ibb.co/0yFP7Mh/monster-manga.jpg",
+        "rating": 9.1,
+        "status": "Completed",
+        "chapters": 162
+      },
+      {
+        "id": 3,
+        "uid": "6M",
+        "title": "Berserk",
+        "image": "https://i.ibb.co/kqPzM7D/berserk.jpg",
+        "rating": 9.5,
+        "status": "Ongoing",
+        "chapters": 374
+      }
+    ],
+    "manhwa": [
+      {
+        "id": 1,
+        "uid": "2H",
+        "title": "Solo Leveling",
+        "image": "https://i.ibb.co/mSNqK8m/solo-leveling.jpg",
+        "rating": 9.1,
+        "status": "Completed",
+        "chapters": 179
+      },
+      {
+        "id": 2,
+        "uid": "3H",
+        "title": "Omniscient Reader",
+        "image": "https://i.ibb.co/FXzP9Hg/omniscient-reader.jpg",
+        "rating": 9.0,
+        "status": "Ongoing",
+        "chapters": 160
+      },
+      {
+        "id": 3,
+        "uid": "4H",
+        "title": "The Beginning After The End",
+        "image": "https://i.ibb.co/QfBd8zG/beginning-after-end.jpg",
+        "rating": 8.9,
+        "status": "Ongoing",
+        "chapters": 180
+      }
+    ],
+    "webnovels": [
+      {
+        "id": 1,
+        "uid": "2W",
+        "title": "Omniscient Reader's Viewpoint",
+        "image": "https://i.ibb.co/FXzP9Hg/orv.jpg",
+        "rating": 9.2,
+        "status": "Completed",
+        "chapters": 551
+      },
+      {
+        "id": 2,
+        "uid": "3W",
+        "title": "Shadow Slave",
+        "image": "https://i.ibb.co/QNvd7Rq/shadow-slave.jpg",
+        "rating": 8.9,
+        "status": "Ongoing",
+        "chapters": 1800
+      }
+    ]
+  }
+}

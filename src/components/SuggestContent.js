@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
+import { useTheme } from '../app/contexts/ThemeContext';
 import { Send, CheckCircle, XCircle, Clock, AlertCircle, Trash2, LogIn } from 'lucide-react';
 
-export default function SuggestContent({ isDark = true }) {
+export default function SuggestContent() {
+  const { isDark } = useTheme();
   const [contentName, setContentName] = useState('');
   const [contentType, setContentType] = useState('anime');
   const [isAnonymous, setIsAnonymous] = useState(true);

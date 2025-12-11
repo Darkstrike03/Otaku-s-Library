@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Changed from react-router-dom
 import { Tv, BookOpen, Book, Flame, TrendingUp, Star, Clock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { useTheme } from '../../app/contexts/ThemeContext';       
 
-export default function PopularSection({ isDark }) {
+export default function PopularSection() {
+  const { isDark } = useTheme();
   const [activeCategory, setActiveCategory] = useState('anime');
   const [popularData, setPopularData] = useState(null);
   const router = useRouter(); // Changed from useNavigate

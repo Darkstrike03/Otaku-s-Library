@@ -9,39 +9,48 @@ import {
   Layers,
   LucideIcon
 } from "lucide-react";
+import { useTheme } from '../../app/contexts/ThemeContext';
+import Link from 'next/link';
 
-export default function Section4({ isDark }) {
+export default function Section4() {
+  const { isDark } = useTheme();
   const categories = [
     {
       name: "Anime",
       icon: Tv,
-      gradient: "from-purple-500 to-pink-500"
+      gradient: "from-purple-500 to-pink-500",
+      href: "/library/anime"
     },
     {
       name: "Manga",
       icon: BookOpen,
-      gradient: "from-blue-500 to-cyan-500"
-    },
-    {
-      name: "Light Novels",
-      icon: ScrollText,
-      gradient: "from-green-500 to-emerald-500"
+      gradient: "from-blue-500 to-cyan-500",
+      href: "/library/manga"
     },
     {
       name: "Manhwa",
       icon: Layers,
-      gradient: "from-orange-500 to-amber-500"
+      gradient: "from-orange-500 to-amber-500",
+      href: "/library/manhwa"
     },
     {
       name: "Manhua",
       icon: BookMarked,
-      gradient: "from-red-500 to-rose-500"
+      gradient: "from-red-500 to-rose-500",
+      href: "/library/manhua"
+    },
+    {
+      name: "Donghua",
+      icon: ScrollText,
+      gradient: "from-green-500 to-emerald-500",
+      href: "/library/donghua"
     },
     {
       name: "Web Novels",
       icon: LibraryBig,
-      gradient: "from-indigo-500 to-violet-500"
-    }
+      gradient: "from-indigo-500 to-violet-500",
+      href: "/library/webnovels"
+    },
   ];
 
   return (

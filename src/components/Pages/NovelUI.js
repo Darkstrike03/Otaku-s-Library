@@ -15,8 +15,10 @@ import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
+import {useTheme} from '../../app/contexts/ThemeContext';
 
-export default function NovelUI({ isDark = true }) {
+export default function NovelUI() {
+  const { isDark } = useTheme();
   const { uid } = useParams();
   const router = useRouter();
   

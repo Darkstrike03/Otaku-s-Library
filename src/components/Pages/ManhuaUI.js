@@ -15,8 +15,10 @@ import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
+import {useTheme} from '../../app/contexts/ThemeContext';
 
-export default function ManhuaUI({ isDark = true }) {
+export default function ManhuaUI() {
+  const { isDark } = useTheme();
   const { uid } = useParams();
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -250,7 +252,7 @@ export default function ManhuaUI({ isDark = true }) {
                     <span className={`px-4 py-2 rounded-full text-sm font-bold ${
                       manhuaData.status === 'Ongoing' 
                         ? 'bg-green-500/30 text-green-200' 
-                        : 'bg-blue-500/30 text-blue-200'
+                        : 'bg-blue-900/30 text-blue-900'
                     }`}>
                       {manhuaData.status}
                     </span>

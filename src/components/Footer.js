@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Github, Twitter, Mail, Heart, Sparkles, TrendingUp, BookOpen, Tv, Book, Users, Star, MessageCircle } from 'lucide-react';
+import { Github, Twitter, Mail, Music, Heart, Sparkles, TrendingUp, BookOpen, Tv, Book, Users, Star, MessageCircle } from 'lucide-react';
 
 export default function Footer({ isDark }) {
   const [email, setEmail] = useState('');
@@ -11,15 +11,15 @@ export default function Footer({ isDark }) {
 
   const footerLinks = {
     browse: [
-      { name: 'Anime', icon: Tv, href: '/library' },
-      { name: 'Manga', icon: BookOpen, href: '/library' },
-      { name: 'Novels', icon: Book, href: '/library' },
+      { name: 'Anime', icon: Tv, href: '/library/anime' },
+      { name: 'Manga', icon: BookOpen, href: '/library/manga' },
+      { name: 'Novels', icon: Book, href: '/library/novels' },
       { name: 'Trending', icon: TrendingUp, href: '/library' },
     ],
     community: [
       { name: 'Forums', icon: Users, href: '#' },
       { name: 'Reviews', icon: Star, href: '#' },
-      { name: 'Lists', icon: Sparkles, href: '/list' },
+      { name: 'Lists', icon: Sparkles, href: '/twist' },
       { name: 'Recommendations', icon: Heart, href: '#' },
     ],
     company: [
@@ -31,9 +31,9 @@ export default function Footer({ isDark }) {
   };
 
   const socialLinks = [
-    { icon: Twitter, label: 'Twitter', href: '#' },
+    { icon: Music, label: 'Spotify', href: '#' },
     { icon: MessageCircle, label: 'Discord', href: '#' },
-    { icon: Github, label: 'GitHub', href: '#' },
+    { icon: Github, label: 'GitHub', href: 'https://github.com/Darkstrike03/Otaku-s-Library' },
   ];
 
   return (

@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Tv, BookOpen, Book, TrendingUp, Sparkles, Zap, ChevronRight, Bell, Calendar, Star, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '../../app/contexts/ThemeContext';
 
-export default function HeroSection({ isDark, toggleTheme }) {
+export default function HeroSection() {
   const router = useRouter();
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [currentNotice, setCurrentNotice] = useState(0);
 
@@ -89,17 +91,17 @@ export default function HeroSection({ isDark, toggleTheme }) {
   return (
     <div className={`transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-white'}`}>
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className={`relative overflow-hidden ${isDark ? 'bg-black' : 'bg-white'}`}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className={`absolute top-20 left-10 w-72 h-72 ${
-            isDark ? 'bg-purple-600/20' : 'bg-purple-400/20'
+            isDark ? 'bg-purple-600/20' : 'bg-purple-400/30'
           } rounded-full blur-3xl animate-pulse`}></div>
           <div className={`absolute bottom-20 right-10 w-96 h-96 ${
-            isDark ? 'bg-cyan-600/20' : 'bg-cyan-400/20'
+            isDark ? 'bg-cyan-600/20' : 'bg-cyan-400/30'
           } rounded-full blur-3xl animate-pulse`} style={{ animationDelay: '1s' }}></div>
           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] ${
-            isDark ? 'bg-pink-600/10' : 'bg-pink-400/10'
+            isDark ? 'bg-pink-600/10' : 'bg-pink-400/15'
           } rounded-full blur-3xl animate-pulse`} style={{ animationDelay: '2s' }}></div>
         </div>
 
@@ -315,7 +317,7 @@ export default function HeroSection({ isDark, toggleTheme }) {
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M0,64 C240,96 480,96 720,64 C960,32 1200,32 1440,64 L1440,120 L0,120 Z"
-              fill={isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)'}
+              fill={isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.15)'}
               className="animate-pulse"
             />
           </svg>

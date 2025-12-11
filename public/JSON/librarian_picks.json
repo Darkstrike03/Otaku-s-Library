@@ -1,0 +1,154 @@
+{
+  "picks": [
+    {
+      "id": 1,
+      "uid": "6A",
+      "title": "Frieren: Beyond Journey's End",
+      "type": "anime",
+      "image": "https://i.ibb.co/FGT8wws/Sousou-no-Frieren-Frieren-Beyond-Journey-s-End.jpg",
+      "rating": 9.3,
+      "reason": "Beautiful storytelling and character development that redefines the fantasy genre",
+      "tags": ["Fantasy", "Adventure", "Drama"]
+    },
+    {
+      "id": 2,
+      "uid": "2H",
+      "title": "Solo Leveling",
+      "type": "manhwa",
+      "image": "https://i.ibb.co/mSNqK8m/solo-leveling.jpg",
+      "rating": 9.1,
+      "reason": "Epic power progression with stunning art that sets the standard for action manhwa",
+      "tags": ["Action", "Fantasy", "Overpowered"]
+    },
+    {
+      "id": 3,
+      "uid": "2W",
+      "title": "Omniscient Reader's Viewpoint",
+      "type": "webnovel",
+      "image": "https://i.ibb.co/FXzP9Hg/orv.jpg",
+      "rating": 9.2,
+      "reason": "Mind-blowing plot twists and world-building that keeps you guessing",
+      "tags": ["Fantasy", "System", "Mystery"]
+    },
+    {
+      "id": 4,
+      "uid": "6M",
+      "title": "Berserk",
+      "type": "manga",
+      "image": "https://i.ibb.co/kqPzM7D/berserk.jpg",
+      "rating": 9.5,
+      "reason": "A masterpiece of dark fantasy with unparalleled art and storytelling",
+      "tags": ["Dark Fantasy", "Seinen", "Action"]
+    },
+    {
+      "id": 5,
+      "uid": "1D",
+      "title": "Link Click",
+      "type": "donghua",
+      "image": "https://i.ibb.co/XFy3W7J/link-click.jpg",
+      "rating": 8.9,
+      "reason": "Unique time travel concept with emotional depth and incredible animation",
+      "tags": ["Thriller", "Mystery", "Time Travel"]
+    },
+    {
+      "id": 6,
+      "uid": "1U",
+      "title": "Tales of Demons and Gods",
+      "type": "manhua",
+      "image": "https://i.ibb.co/Jp7fXQg/tales-demons.jpg",
+      "rating": 8.5,
+      "reason": "Satisfying revenge story with great cultivation system",
+      "tags": ["Cultivation", "Reincarnation", "Action"]
+    },
+    {
+      "id": 7,
+      "uid": "9A",
+      "title": "Chainsaw Man",
+      "type": "anime",
+      "image": "https://i.ibb.co/5Wq00zMv/590c4b002caf4c849acc4796316e9393.jpg",
+      "rating": 8.8,
+      "reason": "Bold and unconventional storytelling with stunning MAPPA animation",
+      "tags": ["Action", "Horror", "Comedy"]
+    },
+    {
+      "id": 8,
+      "uid": "4H",
+      "title": "The Beginning After The End",
+      "type": "manhwa",
+      "image": "https://i.ibb.co/QfBd8zG/beginning-after-end.jpg",
+      "rating": 8.9,
+      "reason": "Perfect blend of magic and martial arts with great character growth",
+      "tags": ["Fantasy", "Reincarnation", "Magic"]
+    },
+    {
+      "id": 9,
+      "uid": "1W",
+      "title": "Lord of the Mysteries",
+      "type": "webnovel",
+      "image": "https://i.ibb.co/5hRdMXy/lord-mysteries.jpg",
+      "rating": 9.4,
+      "reason": "Incredibly intricate world-building and mystery elements that rival any fantasy novel",
+      "tags": ["Mystery", "Steampunk", "Fantasy"]
+    },
+    {
+      "id": 10,
+      "uid": "1A",
+      "title": "Attack on Titan",
+      "type": "anime",
+      "image": "https://i.ibb.co/vxPRT7PC/attack-on-titan.jpg",
+      "rating": 8.5,
+      "reason": "Revolutionary storytelling with plot twists that changed anime forever",
+      "tags": ["Action", "Mystery", "Dark"]
+    },
+    {
+      "id": 11,
+      "uid": "5H",
+      "title": "Tower of God",
+      "type": "manhwa",
+      "image": "https://i.ibb.co/hKf3Njc/tower-of-god.jpg",
+      "rating": 8.7,
+      "reason": "Expansive world with complex power system and compelling mysteries",
+      "tags": ["Fantasy", "Adventure", "Mystery"]
+    },
+    {
+      "id": 12,
+      "uid": "4A",
+      "title": "Jujutsu Kaisen",
+      "type": "anime",
+      "image": "https://i.ibb.co/fVZDGVhn/Jujutsu-Kaisen-2020-B-y-2-sezon.jpg",
+      "rating": 8.5,
+      "reason": "Modern classic with amazing fight choreography and character dynamics",
+      "tags": ["Action", "Supernatural", "Shounen"]
+    },
+    {
+      "id": 13,
+      "uid": "2A",
+      "title": "Death Note",
+      "type": "anime",
+      "image": "https://i.ibb.co/RTZwMX6J/Death-Note-Cover.jpg",
+      "rating": 8.6,
+      "reason": "Psychological thriller masterpiece with unforgettable cat-and-mouse game",
+      "tags": ["Thriller", "Psychological", "Mystery"]
+    },
+    {
+      "id": 14,
+      "uid": "5M",
+      "title": "Monster",
+      "type": "manga",
+      "image": "https://i.ibb.co/0yFP7Mh/monster-manga.jpg",
+      "rating": 9.1,
+      "reason": "A gripping psychological thriller that explores morality and humanity",
+      "tags": ["Thriller", "Psychological", "Mystery"]
+    },
+    {
+      "id": 15,
+      "uid": "3H",
+      "title": "Omniscient Reader",
+      "type": "manhwa",
+      "image": "https://i.ibb.co/FXzP9Hg/omniscient-reader.jpg",
+      "rating": 9.0,
+      "reason": "Brilliant adaptation of the novel with stunning artwork",
+      "tags": ["Fantasy", "System", "Action"]
+    }
+  ]
+}
