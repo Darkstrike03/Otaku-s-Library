@@ -13,9 +13,6 @@ Thank you for wanting to share your favorite anime, manga, manhwa, manhua, dongh
 ```json
 {
   "username": "yourname",
-  "displayName": "Your Display Name",
-  "avatar": "https://your-avatar-url.com/image.jpg",
-  "bio": "A short bio about yourself and your interests 📚",
   "favorites": {
     "anime": [
       {
@@ -126,3 +123,4 @@ See `alice.json`, `bob.json`, or `charlie.json` in the TWIST folder for examples
 Open an issue or reach out to the maintainers if you have any questions!
 
 Happy sharing! 🎉
+
