@@ -20,7 +20,7 @@ Thank you for wanting to share your favorite anime, manga, manhwa, manhua, dongh
         "uid": "1A",
         "title": "Anime Title",
         "image": "https://image-url.com/poster.jpg",
-        "rating": 8.5,
+        "rating": 8.0,
         "status": "Completed",
         "episodes": 24
       }
@@ -47,9 +47,6 @@ Thank you for wanting to share your favorite anime, manga, manhwa, manhua, dongh
 ## Field Descriptions
 
 - **username**: Your unique username (lowercase, no spaces)
-- **displayName**: Your display name as you want it shown
-- **avatar**: URL to your avatar image (use services like imgur, imgbb, or pravatar.cc)
-- **bio**: A short description about yourself (keep it under 100 characters)
 - **favorites**: Object containing arrays for each category
   - **id**: Sequential number within the category
   - **uid**: Unique ID from the main database (check existing entries)
@@ -71,15 +68,6 @@ You can include any combination of:
 - `webnovels`
 
 Leave empty arrays `[]` for categories you don't want to include.
-
-## Image Guidelines
-
-- Use high-quality images
-- Recommended size: 400x600px minimum
-- Use reliable image hosting services:
-  - [ImgBB](https://imgbb.com/)
-  - [Imgur](https://imgur.com/)
-  - For avatars: [Pravatar](https://pravatar.cc/) or [UI Avatars](https://ui-avatars.com/)
 
 ## UID Reference
 
@@ -115,7 +103,6 @@ See `alice.json`, `bob.json`, or `charlie.json` in the TWIST folder for examples
 - Keep your list focused (5-15 items per category is ideal)
 - Be honest with your ratings
 - Include a variety of titles, not just the most popular ones
-- Keep your bio friendly and appropriate
 - Check that all image URLs are working before submitting
 
 ## Questions?
@@ -123,4 +110,5 @@ See `alice.json`, `bob.json`, or `charlie.json` in the TWIST folder for examples
 Open an issue or reach out to the maintainers if you have any questions!
 
 Happy sharing! 🎉
+
 
