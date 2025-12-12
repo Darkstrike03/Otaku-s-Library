@@ -2,8 +2,214 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
-import { Star, Send, Trash2, Edit2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Star, Send, Trash2, Edit2, ThumbsUp, ThumbsDown, Eye, EyeOff } from 'lucide-react';
 import UserProfile from './UserProfile';
+
+// Text formatter component for review text
+function FormattedReviewText({ text, isDark }) {
+  const [revealedProfanity, setRevealedProfanity] = useState({});
+
+  const profanityList = ['fuck', 'shit', 'damn', 'bitch', 'ass', 'hell', 'bastard', 'crap', 'piss', 'dick', 'cock', 'pussy', 'asshole', 'motherfucker', 'bullshit'];
+
+  const toggleProfanity = (index) => {
+    setRevealedProfanity(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const formatText = (text) => {
+    if (!text) return null;
+
+    let elementCounter = 0;
+
+    // Helper function to process profanity in a string
+    const processProfanity = (str) => {
+      const words = str.split(/(\s+)/);
+      return words.map((word) => {
+        const cleanWord = word.toLowerCase().replace(/[.,!?;:]$/, '');
+        const isProfanity = profanityList.some(prof => cleanWord.includes(prof));
+        
+        if (isProfanity) {
+          const profanityKey = `profanity-${elementCounter++}`;
+          const isRevealed = revealedProfanity[profanityKey];
+          
+          return (
+            <span
+              key={profanityKey}
+              onClick={() => toggleProfanity(profanityKey)}
+              className={`cursor-pointer inline-flex items-center gap-1 px-1 rounded transition-all ${
+                isRevealed 
+                  ? isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-500/20 text-red-600'
+                  : 'blur-sm hover:blur-none'
+              }`}
+              title="Click to reveal/hide"
+            >
+              {isRevealed && <EyeOff size={12} className="inline" />}
+              {word}
+              {!isRevealed && <Eye size={12} className="inline opacity-50" />}
+            </span>
+          );
+        }
+        
+        return word;
+      });
+    };
+
+    // Recursive function to process formatting within content
+    const processFormatting = (content) => {
+      if (!content) return null;
+      if (typeof content !== 'string') return content;
+
+      let result = [content];
+
+      // Process [b][/b] - Bold
+      result = result.flatMap(part => {
+        if (typeof part !== 'string') return part;
+        const boldRegex = /\[b\](.*?)\[\/b\]/gi;
+        const segments = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = boldRegex.exec(part)) !== null) {
+          if (match.index > lastIndex) {
+            segments.push(part.substring(lastIndex, match.index));
+          }
+          segments.push(
+            <strong key={`bold-${elementCounter++}`} className="font-bold">
+              {processProfanity(match[1])}
+            </strong>
+          );
+          lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < part.length) {
+          segments.push(part.substring(lastIndex));
+        }
+
+        return segments.length > 0 ? segments : part;
+      });
+
+      // Process [i][/i] - Italics
+      result = result.flatMap(part => {
+        if (typeof part !== 'string') return part;
+        const italicRegex = /\[i\](.*?)\[\/i\]/gi;
+        const segments = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = italicRegex.exec(part)) !== null) {
+          if (match.index > lastIndex) {
+            segments.push(part.substring(lastIndex, match.index));
+          }
+          segments.push(
+            <em key={`italic-${elementCounter++}`} className="italic">
+              {processProfanity(match[1])}
+            </em>
+          );
+          lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < part.length) {
+          segments.push(part.substring(lastIndex));
+        }
+
+        return segments.length > 0 ? segments : part;
+      });
+
+      // Process profanity in remaining plain text
+      result = result.flatMap(part => {
+        if (typeof part !== 'string') return part;
+        return processProfanity(part);
+      });
+
+      return result;
+    };
+
+    let parts = [text];
+
+    // Process [img][/img] - Images (process first as they don't contain text content)
+    parts = parts.flatMap(part => {
+      if (typeof part !== 'string') return part;
+      const imgRegex = /\[img\](.*?)\[\/img\]/gi;
+      const segments = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = imgRegex.exec(part)) !== null) {
+        if (match.index > lastIndex) {
+          segments.push(part.substring(lastIndex, match.index));
+        }
+        segments.push(
+          <img
+            key={`img-${elementCounter++}`}
+            src={match[1]}
+            alt="User uploaded"
+            className="max-w-full h-auto rounded-lg my-2 max-h-96 object-contain"
+            loading="lazy"
+          />
+        );
+        lastIndex = match.index + match[0].length;
+      }
+
+      if (lastIndex < part.length) {
+        segments.push(part.substring(lastIndex));
+      }
+
+      return segments.length > 0 ? segments : part;
+    });
+
+    // Process [q][/q] - Quotes
+    parts = parts.flatMap(part => {
+      if (typeof part !== 'string') return part;
+      const quoteRegex = /\[q\](.*?)\[\/q\]/gi;
+      const segments = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = quoteRegex.exec(part)) !== null) {
+        if (match.index > lastIndex) {
+          segments.push(part.substring(lastIndex, match.index));
+        }
+        segments.push(
+          <blockquote
+            key={`quote-${elementCounter++}`}
+            className={`border-l-4 ${isDark ? 'border-purple-500 bg-white/5' : 'border-purple-600 bg-black/5'} pl-4 py-2 my-2 italic`}
+          >
+            {processFormatting(match[1])}
+          </blockquote>
+        );
+        lastIndex = match.index + match[0].length;
+      }
+
+      if (lastIndex < part.length) {
+        segments.push(part.substring(lastIndex));
+      }
+
+      return segments.length > 0 ? segments : part;
+    });
+
+    // Process [/br] - Line breaks
+    parts = parts.flatMap(part => {
+      if (typeof part !== 'string') return part;
+      return part.split('[/br]').flatMap((segment, index, array) => 
+        index < array.length - 1 
+          ? [segment, <br key={`br-${elementCounter++}`} />] 
+          : segment
+      );
+    });
+
+    // Process remaining text for bold, italic, and profanity
+    parts = parts.flatMap(part => {
+      if (typeof part !== 'string') return part;
+      return processFormatting(part);
+    });
+
+    return parts;
+  };
+
+  return <div className="whitespace-pre-wrap break-words">{formatText(text)}</div>;
+}
 
 export default function ReviewSection({ isDark, uid, category, currentUser }) {
   const [reviews, setReviews] = useState([]);
@@ -479,11 +685,20 @@ const updateAverageRating = async (itemUid) => {
                 : 'bg-black/5 text-black placeholder-black/40 border border-black/10 focus:border-purple-500'
             } outline-none`}
             rows="4"
-            maxLength={500}
+            maxLength={2000}
           />
-          <p className={`text-xs mt-1 ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-            {reviewText.length}/500
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
+            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+              {reviewText.length}/2000
+            </p>
+            <details className={`text-xs ${isDark ? 'text-white/50' : 'text-black/50'}`}>
+              <summary className="cursor-pointer hover:underline">Formatting help</summary>
+              <div className="mt-1 space-y-0.5">
+                <p>[b]bold[/b] • [i]italic[/i] • [q]quote[/q]</p>
+                <p>[/br] for line break • [img]url[/img] for images</p>
+              </div>
+            </details>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2">
@@ -589,9 +804,9 @@ const updateAverageRating = async (itemUid) => {
 
               {/* Review text */}
               {review.review_text && (
-                <p className={`mb-3 text-xs md:text-sm ${isDark ? 'text-white/80' : 'text-black/80'}`}>
-                  {review.review_text}
-                </p>
+                <div className={`mb-3 text-xs md:text-sm ${isDark ? 'text-white/80' : 'text-black/80'}`}>
+                  <FormattedReviewText text={review.review_text} isDark={isDark} />
+                </div>
               )}
 
               {/* Like/Dislike buttons */}

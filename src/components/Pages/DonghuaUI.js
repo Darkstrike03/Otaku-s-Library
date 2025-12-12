@@ -15,6 +15,7 @@ import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
 import {useTheme} from '../../app/contexts/ThemeContext';
+import UserProfile from '@/components/UserProfile';
 
 export default function DonghuaUI() {
   const { isDark } = useTheme();
@@ -34,6 +35,9 @@ export default function DonghuaUI() {
   const [relatedWorks, setRelatedWorks] = useState([]);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [currentUser, setCurrentUser]= useState(null);
+  const [contributorsData, setContributorsData] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -98,6 +102,30 @@ export default function DonghuaUI() {
       loadDonghuaData();
     }
   }, [uid, userId]);
+
+  useEffect(() => {
+    const fetchContributors = async () => {
+      if (!donghuaData?.contributors) return;
+      
+      const contributorsList = parseArray(donghuaData.contributors);
+      if (contributorsList.length === 0) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_data')
+          .select('user_id, username, profile_pic')
+          .in('username', contributorsList);
+
+        if (!error && data) {
+          setContributorsData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching contributors:', error);
+      }
+    };
+
+    fetchContributors();
+  }, [donghuaData]);
 
   const toggleBookmark = async () => {
     if (!userId) {
@@ -1015,43 +1043,142 @@ export default function DonghuaUI() {
           </div>
         )}
 
-        {/* Contributors */}
+        {/* Contributors - Database Integrated with Material Design */}
         {activeTab === 'contributors' && (
-          <div>
-            {contributors.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {contributors.map((contributor, i) => {
-                  const isLibrarian = isLibrarianContributor(contributor);
-                  return (
-                    <div
+          <div className="space-y-8">
+            {/* Contributors Section */}
+            <div 
+              className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+              style={{
+                boxShadow: isDark 
+                  ? '0 8px 24px rgba(0, 0, 0, 0.3)'
+                  : '0 8px 24px rgba(0, 0, 0, 0.08)',
+                transform: 'translateZ(0)',
+                border: isDark ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(34, 197, 94, 0.15)'
+              }}
+            >
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                <Users size={24} className="text-green-500" />
+                Contributors
+              </h3>
+
+              {contributorsData.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {contributorsData.map((contributor, i) => (
+                    <div 
                       key={i}
-                      className={`p-6 rounded-2xl ${
-                        isLibrarian
-                          ? isDark
-                            ? 'bg-yellow-600/20 border border-yellow-500/30'
-                            : 'bg-yellow-600/10 border border-yellow-500/20'
-                          : isDark
-                          ? 'bg-white/5'
-                          : 'bg-black/5'
-                      }`}
+                      className={`p-4 rounded-2xl text-center cursor-pointer transition-all hover:scale-105 active:scale-95 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                      style={{
+                        boxShadow: isDark 
+                          ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                          : '0 4px 12px rgba(0, 0, 0, 0.08)',
+                        transform: 'translateZ(0)',
+                        border: isDark ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(34, 197, 94, 0.15)'
+                      }}
+                      onClick={() => {
+                        setSelectedUserId(contributor.user_id);
+                        setShowUserProfile(true);
+                      }}
                     >
-                      {isLibrarian && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <Crown size={16} className="text-yellow-500" />
-                          <span className="text-xs font-bold text-yellow-500">Librarian</span>
-                        </div>
-                      )}
-                      <p className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>
-                        {typeof contributor === 'string' ? contributor : contributor.username || contributor.name || contributor.displayName || contributor}
+                      {contributor.profile_pic ? (
+                        <img 
+                          src={contributor.profile_pic} 
+                          alt={contributor.username}
+                          className="w-16 h-16 rounded-full mx-auto mb-3 object-cover"
+                          style={{
+                            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+                            transform: 'translateZ(0)'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl"
+                        style={{
+                          display: contributor.profile_pic ? 'none' : 'flex',
+                          background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
+                          boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+                          transform: 'translateZ(0)'
+                        }}
+                      >
+                        {contributor.username?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <p className={`font-bold text-sm ${isDark ? 'text-green-300' : 'text-green-700'} truncate`}>
+                        {contributor.username}
                       </p>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={`text-center py-16 rounded-3xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-                <Users size={48} className={`mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
-                <p className={`font-bold ${isDark ? 'text-white/60' : 'text-black/60'}`}>No contributors</p>
+                  ))}
+                </div>
+              ) : (
+                <div 
+                  className={`rounded-xl p-8 text-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                  style={{
+                    boxShadow: isDark 
+                      ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                      : '0 4px 12px rgba(0, 0, 0, 0.08)',
+                    transform: 'translateZ(0)'
+                  }}
+                >
+                  <Users size={48} className={`mx-auto mb-4 opacity-50 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No contributors found</p>
+                </div>
+              )}
+            </div>
+
+            {/* Contribution Stats - Green Theme */}
+            {contributorsData.length > 0 && (
+              <div 
+                className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+                style={{
+                  boxShadow: isDark 
+                    ? '0 8px 24px rgba(0, 0, 0, 0.3)'
+                    : '0 8px 24px rgba(0, 0, 0, 0.08)',
+                  transform: 'translateZ(0)',
+                  border: isDark ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(16, 185, 129, 0.15)'
+                }}
+              >
+                <h4 className={`text-lg font-black mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Contribution Stats</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div 
+                    className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                    style={{
+                      boxShadow: isDark 
+                        ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                      transform: 'translateZ(0)'
+                    }}
+                  >
+                    <p className="text-3xl font-black text-green-500">{contributorsData.length}</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>Total Contributors</p>
+                  </div>
+                  <div 
+                    className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                    style={{
+                      boxShadow: isDark 
+                        ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                      transform: 'translateZ(0)'
+                    }}
+                  >
+                    <p className="text-3xl font-black text-emerald-500">{parseArray(donghuaData.contributors).length}</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>Listed</p>
+                  </div>
+                  <div 
+                    className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                    style={{
+                      boxShadow: isDark 
+                        ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                      transform: 'translateZ(0)'
+                    }}
+                  >
+                    <p className="text-3xl font-black text-teal-500">{contributorsData.filter(c => c.profile_pic).length}</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>With Profiles</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1084,6 +1211,19 @@ export default function DonghuaUI() {
           </div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile 
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
+
       {/* At the bottom of your content */}
 <div className={`mt-6`}>    
   <ReviewSection 

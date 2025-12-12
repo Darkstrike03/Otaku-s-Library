@@ -82,6 +82,12 @@ export default function HeroSection() {
     }
     return num.toString();
   };
+  const handleScroll = () => {
+    window.scrollBy({
+      top: 800,
+      behavior: 'smooth'
+    });
+  };
 
   // Fetch real stats from database with caching
   useEffect(() => {
@@ -258,12 +264,12 @@ export default function HeroSection() {
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
 
-                <button className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 ${
+                <button onClick={handleScroll} className={`px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 ${
                   isDark 
                     ? 'bg-white/5 hover:bg-white/10 text-white border-2 border-white/20' 
                     : 'bg-black/5 hover:bg-black/10 text-black border-2 border-black/20'
                 } backdrop-blur-xl`}>
-                  Explore Features
+                  Explore Now
                 </button>
               </div>
 

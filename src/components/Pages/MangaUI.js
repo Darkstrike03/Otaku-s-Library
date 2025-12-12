@@ -13,6 +13,7 @@ import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
+import UserProfile from '@/components/UserProfile';
 import {useTheme} from '../../app/contexts/ThemeContext';
 
 export default function MangaUI() {
@@ -31,6 +32,9 @@ export default function MangaUI() {
   const [generatingCard, setGeneratingCard] = useState(false);
   const [showContentWarnings, setShowContentWarnings] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [contributorsData, setContributorsData] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -44,6 +48,24 @@ export default function MangaUI() {
     };
     getCurrentUser();
   }, []);
+
+  // Fetch contributors from database
+  useEffect(() => {
+    const fetchContributors = async () => {
+      if (!mangaData?.contributors || !Array.isArray(mangaData.contributors)) return;
+      
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('user_id, username, profile_pic')
+        .in('username', mangaData.contributors);
+      
+      if (!error && data) {
+        setContributorsData(data);
+      }
+    };
+    
+    fetchContributors();
+  }, [mangaData]);
 
   // Load user's bookmarks and favorites
   const loadUserData = async (userId) => {
@@ -1029,30 +1051,60 @@ export default function MangaUI() {
         {activeTab === 'contributors' && (
           <div>
             {contributors.length > 0 ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {contributors.map((contributor, i) => {
                   const isLibrarian = isLibrarianContributor(contributor);
+                  const contributorName = typeof contributor === 'string' 
+                    ? contributor 
+                    : contributor.username || contributor.name || contributor.displayName || contributor;
+                  const contributorData = contributorsData.find(c => c.username === contributorName);
+                  
                   return (
                     <div
                       key={i}
-                      className={`rounded-2xl p-6 ${
+                      className={`rounded-2xl p-4 text-center cursor-pointer hover:scale-105 transition-transform ${
                         isLibrarian
                           ? 'bg-gradient-to-br from-yellow-600/20 to-orange-600/20 border border-yellow-500/30'
                           : isDark
-                          ? 'bg-white/5 border border-white/10'
-                          : 'bg-black/5 border border-black/10'
+                          ? 'bg-white/5 border border-white/10 hover:border-purple-500/50'
+                          : 'bg-black/5 border border-black/10 hover:border-purple-500/50'
                       } backdrop-blur-xl`}
+                      onClick={() => {
+                        if (contributorData?.user_id) {
+                          setSelectedUserId(contributorData.user_id);
+                          setShowUserProfile(true);
+                        }
+                      }}
                     >
                       {isLibrarian && (
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center justify-center gap-2 mb-2">
                           <Crown size={16} className="text-yellow-500" />
                           <span className="text-xs font-bold text-yellow-500">Librarian</span>
                         </div>
                       )}
-                      <h4 className={`font-bold ${isDark ? 'text-white' : 'text-black'}`}>
-                        {typeof contributor === 'string'
-                          ? contributor
-                          : contributor.username || contributor.name || contributor.displayName || contributor}
+                      <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3">
+                        {contributorData?.profile_pic ? (
+                          <img 
+                            src={contributorData.profile_pic} 
+                            alt={contributorName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+                            }}
+                          />
+                        ) : (
+                          <div className={`w-full h-full flex items-center justify-center ${
+                            isLibrarian 
+                              ? 'bg-gradient-to-br from-yellow-500 to-orange-500' 
+                              : 'bg-gradient-to-br from-purple-500 to-pink-500'
+                          }`}>
+                            <User size={28} className="text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <h4 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-black'} line-clamp-2`}>
+                        {contributorName}
                       </h4>
                     </div>
                   );
@@ -1094,6 +1146,19 @@ export default function MangaUI() {
           </div>
         )}
       </div>
+      
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
+      
       <div className={`mt-6 p-4 md:p-8 ${isDark ? 'bg-white/5 border-t border-white/10' : 'bg-black/5 border-t border-black/10'} backdrop-blur-xl`}>    
             <ReviewSection 
     isDark={isDark} 

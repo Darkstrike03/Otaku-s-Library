@@ -102,7 +102,7 @@ export default function PopularSection() {
   const handleCardClick = (uid) => {
     router.push(`/details/${uid}`); // Navigate to details page with uid
   };
-  const currentData = popularData?.[activeCategory] || [];
+  const currentData = (popularData?.[activeCategory] || []).slice(0, 10);
   const activeTab = categories.find(cat => cat.id === activeCategory);
 
   return (

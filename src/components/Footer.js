@@ -20,12 +20,12 @@ export default function Footer({ isDark }) {
       { name: 'Anime', icon: Tv, href: '/library/anime' },
       { name: 'Manga', icon: BookOpen, href: '/library/manga' },
       { name: 'Novels', icon: Book, href: '/library/webnovels' },
-      { name: 'Trending', icon: TrendingUp, href: '/library' },
+      { name: 'Trending', icon: TrendingUp, href: '/all/anime' },
     ],
     community: [
       { name: 'Forums', icon: Users, href: '#' },
-      { name: 'Reviews', icon: Star, href: '#' },
-      { name: 'Lists', icon: Sparkles, href: '/twist' },
+      { name: 'Reviews', icon: Star, href: '/reviews' },
+      { name: 'Twist', icon: Sparkles, href: '/twist' },
       { name: 'Recommendations', icon: Heart, href: '#' },
     ],
     company: [
@@ -37,7 +37,7 @@ export default function Footer({ isDark }) {
   };
 
   const socialLinks = [
-    { icon: Music, label: 'Spotify', href: '#' },
+    { icon: Music, label: 'Spotify', href: 'https://open.spotify.com/playlist/416KPf0yFEgj3i1fxxCBgC?si=oNbzDdMBTeqWsJVZ_ywswQ&pi=g6mEUsj7RWeTH' },
     { icon: MessageCircle, label: 'Discord', href: '#' },
     { icon: Github, label: 'GitHub', href: 'https://github.com/Darkstrike03/Otaku-s-Library' },
   ];

@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
 import {useTheme} from '../../app/contexts/ThemeContext';
+import UserProfile from '@/components/UserProfile';
 
 export default function AnimeUI() {
   const { isDark } = useTheme();
@@ -27,6 +28,9 @@ export default function AnimeUI() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [contributorsData, setContributorsData] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -108,6 +112,30 @@ export default function AnimeUI() {
 
   getCurrentUser();
 }, []);
+
+  useEffect(() => {
+    const fetchContributors = async () => {
+      if (!animeData?.contributers) return;
+      
+      const contributorsList = parseJSON(animeData.contributers);
+      if (contributorsList.length === 0) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_data')
+          .select('user_id, username, profile_pic')
+          .in('username', contributorsList);
+
+        if (!error && data) {
+          setContributorsData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching contributors:', error);
+      }
+    };
+
+    fetchContributors();
+  }, [animeData]);
   
   // Helper function to parse JSON safely
   const parseJSON = (data) => {
@@ -989,139 +1017,170 @@ https://www.otaku-s-library.vercel.app`;
                 </div>
               )}
 
-              {/* Contributors Tab */}
+              {/* Contributors Tab - Database Integrated with Purple Theme */}
   {activeTab === 'contributors' && (
-    <div className="space-y-6">
-      {/* Lib Talks Section */}
+    <div className="space-y-8">
+      {/* Lib Talks Section - Purple Material Design */}
       {animeData.lib_talks && (
-        <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl`}>
+        <div 
+          className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+          style={{
+            boxShadow: isDark 
+              ? '0 8px 24px rgba(0, 0, 0, 0.3)'
+              : '0 8px 24px rgba(0, 0, 0, 0.08)',
+            transform: 'translateZ(0)',
+            border: isDark ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid rgba(168, 85, 247, 0.15)'
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <MessageSquare size={24} className="text-cyan-400" />
+            <MessageSquare size={24} className="text-purple-500" />
             <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-black'}`}>Librarian's Notes</h3>
           </div>
-          <div className={`p-4 rounded-xl ${isDark ? 'bg-cyan-500/10 border-l-4 border-cyan-500' : 'bg-cyan-500/10 border-l-4 border-cyan-500'}`}>
-            <p className={`text-base leading-relaxed ${isDark ? 'text-cyan-100' : 'text-cyan-900'}`}>
+          <div 
+            className={`p-5 rounded-xl ${isDark ? 'bg-purple-500/10' : 'bg-purple-100/50'}`}
+            style={{
+              borderLeft: '4px solid rgb(168, 85, 247)',
+              transform: 'translateZ(0)'
+            }}
+          >
+            <p className={`text-base leading-relaxed ${isDark ? 'text-purple-200' : 'text-purple-900'} font-medium`}>
               {animeData.lib_talks}
             </p>
           </div>
         </div>
       )}
 
-      {/* Contributors Section */}
-      <div className={`rounded-2xl p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl`}>
+      {/* Contributors Section - Database Integrated */}
+      <div 
+        className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+        style={{
+          boxShadow: isDark 
+            ? '0 8px 24px rgba(0, 0, 0, 0.3)'
+            : '0 8px 24px rgba(0, 0, 0, 0.08)',
+          transform: 'translateZ(0)',
+          border: isDark ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid rgba(168, 85, 247, 0.15)'
+        }}
+      >
         <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
-          <Users size={24} className="text-purple-400" />
+          <Users size={24} className="text-purple-500" />
           Contributors
         </h3>
 
-        {contributors.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {contributors.map((contributor, i) => {
-              const isLibrarian = typeof contributor === 'string' 
-                ? contributor.toLowerCase() === 'the librarian'
-                : contributor.username?.toLowerCase() === 'the librarian' || contributor.toLowerCase() === 'the librarian';
-
-              return (
-                <div
-                  key={i}
-                  className={`relative rounded-xl p-4 transition-all hover:scale-105 cursor-pointer ${
-                    isLibrarian
-                      ? isDark
-                        ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20'
-                        : 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20'
-                      : isDark
-                      ? 'bg-white/5 border border-white/10 hover:border-purple-500/50'
-                      : 'bg-black/5 border border-black/10 hover:border-purple-500/50'
-                  } backdrop-blur-xl`}
+        {contributorsData.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {contributorsData.map((contributor, i) => (
+              <div 
+                key={i}
+                className={`p-4 rounded-2xl text-center cursor-pointer transition-all hover:scale-105 active:scale-95 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+                style={{
+                  boxShadow: isDark 
+                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.08)',
+                  transform: 'translateZ(0)',
+                  border: isDark ? '1px solid rgba(168, 85, 247, 0.2)' : '1px solid rgba(168, 85, 247, 0.15)'
+                }}
+                onClick={() => {
+                  setSelectedUserId(contributor.user_id);
+                  setShowUserProfile(true);
+                }}
+              >
+                {contributor.profile_pic ? (
+                  <img 
+                    src={contributor.profile_pic} 
+                    alt={contributor.username}
+                    className="w-16 h-16 rounded-full mx-auto mb-3 object-cover"
+                    style={{
+                      boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)',
+                      transform: 'translateZ(0)'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-black text-xl"
+                  style={{
+                    display: contributor.profile_pic ? 'none' : 'flex',
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                    boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)',
+                    transform: 'translateZ(0)'
+                  }}
                 >
-                  {/* Librarian Badge */}
-                  {isLibrarian && (
-                    <div className="absolute -top-2 -right-2">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur animate-pulse"></div>
-                        <div className={`relative rounded-full p-2 ${isDark ? 'bg-black' : 'bg-white'}`}>
-                          <Crown size={16} className="text-yellow-500" fill="currentColor" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-3">
-                    <div className={`p-3 rounded-lg ${
-                      isLibrarian
-                        ? 'bg-gradient-to-br from-yellow-500/30 to-orange-500/30'
-                        : isDark
-                        ? 'bg-purple-500/20'
-                        : 'bg-purple-500/20'
-                    }`}>
-                      <User size={20} className={isLibrarian ? 'text-yellow-400' : 'text-purple-400'} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className={`font-bold text-sm mb-1 ${
-                        isLibrarian
-                          ? 'text-yellow-300'
-                          : isDark
-                          ? 'text-white'
-                          : 'text-black'
-                      }`}>
-                        {typeof contributor === 'string' ? contributor : contributor.username || contributor.name || contributor}
-                      </h4>
-                      {isLibrarian && (
-                        <p className={`text-xs ${isDark ? 'text-yellow-400/60' : 'text-yellow-600/60'}`}>
-                          Owner & Curator
-                        </p>
-                      )}
-                      {contributor.role && !isLibrarian && (
-                        <p className={`text-xs ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                          {contributor.role}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Contribution indicator */}
-                  {isLibrarian && (
-                    <div className="mt-3 pt-3 border-t border-yellow-500/30">
-                      <div className="flex items-center gap-2">
-                        <div className="w-full bg-yellow-500/20 rounded-full h-1">
-                          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full" style={{ width: '100%' }}></div>
-                        </div>
-                        <span className="text-xs font-bold text-yellow-400">100%</span>
-                      </div>
-                    </div>
-                  )}
+                  {contributor.username?.[0]?.toUpperCase() || '?'}
                 </div>
-              );
-            })}
+                <p className={`font-bold text-sm ${isDark ? 'text-purple-300' : 'text-purple-700'} truncate`}>
+                  {contributor.username}
+                </p>
+              </div>
+            ))}
           </div>
         ) : (
-          <div className={`rounded-xl p-8 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
-            <Users size={48} className={`mx-auto mb-4 opacity-50 ${isDark ? 'text-white' : 'text-black'}`} />
-            <p className={isDark ? 'text-white/60' : 'text-black/60'}>No contributors yet</p>
+          <div 
+            className={`rounded-xl p-8 text-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+            style={{
+              boxShadow: isDark 
+                ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                : '0 4px 12px rgba(0, 0, 0, 0.08)',
+              transform: 'translateZ(0)'
+            }}
+          >
+            <Users size={48} className={`mx-auto mb-4 opacity-50 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No contributors found</p>
           </div>
         )}
       </div>
 
-      {/* Contribution Stats */}
-      {contributors.length > 0 && (
-        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20' : 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20'} backdrop-blur-xl`}>
+      {/* Contribution Stats - Purple Theme */}
+      {contributorsData.length > 0 && (
+        <div 
+          className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+          style={{
+            boxShadow: isDark 
+              ? '0 8px 24px rgba(0, 0, 0, 0.3)'
+              : '0 8px 24px rgba(0, 0, 0, 0.08)',
+            transform: 'translateZ(0)',
+            border: isDark ? '1px solid rgba(147, 51, 234, 0.2)' : '1px solid rgba(147, 51, 234, 0.15)'
+          }}
+        >
           <h4 className={`text-lg font-black mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Contribution Stats</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-              <p className={`text-2xl font-black ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{contributors.length}</p>
-              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Total Contributors</p>
+            <div 
+              className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              style={{
+                boxShadow: isDark 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                transform: 'translateZ(0)'
+              }}
+            >
+              <p className="text-3xl font-black text-purple-500">{contributorsData.length}</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>Total Contributors</p>
             </div>
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-              <p className={`text-2xl font-black ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                {contributors.filter(c => isLibrarianContributor(c)).length}
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Curated By</p>
+            <div 
+              className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              style={{
+                boxShadow: isDark 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                transform: 'translateZ(0)'
+              }}
+            >
+              <p className="text-3xl font-black text-pink-500">{parseJSON(animeData.contributers).length}</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>Listed</p>
             </div>
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-              <p className={`text-2xl font-black ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>
-                {contributors.filter(c => !isLibrarianContributor(c)).length}
-              </p>
-              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-black/60'}`}>Community</p>
+            <div 
+              className={`p-5 rounded-xl ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              style={{
+                boxShadow: isDark 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                transform: 'translateZ(0)'
+              }}
+            >
+              <p className="text-3xl font-black text-violet-500">{contributorsData.filter(c => c.profile_pic).length}</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider`}>With Profiles</p>
             </div>
           </div>
         </div>

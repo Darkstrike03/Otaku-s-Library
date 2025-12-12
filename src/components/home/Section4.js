@@ -104,8 +104,9 @@ export default function Section4() {
             const Icon = cat.icon;
 
             return (
-              <div
+              <Link
                 key={idx}
+                href={cat.href}
                 className={`
                   group relative p-6 flex flex-col items-center rounded-2xl cursor-pointer select-none
                   backdrop-blur-xl border transition-all duration-500
@@ -152,7 +153,7 @@ export default function Section4() {
                     bg-gradient-to-r ${cat.gradient} transition-all duration-700
                   `}
                 ></div>
-              </div>
+              </Link>
             );
           })}
         </div>

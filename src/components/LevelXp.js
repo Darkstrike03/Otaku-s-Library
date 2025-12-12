@@ -87,6 +87,16 @@ export default function LevelXp({ userId, isDark = true }) {
         nextLevelXp,
         popularity
       });
+
+      // Save the calculated level to user_data table
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .update({ level: level })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Error updating level:', updateError);
+      }
     } catch (error) {
       console.error('Error calculating XP:', error);
     } finally {

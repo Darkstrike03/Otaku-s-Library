@@ -15,6 +15,7 @@ import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import ReviewSection from '../ReviewSection';
 import List from '@/components/List';
+import UserProfile from '@/components/UserProfile';
 import {useTheme} from '../../app/contexts/ThemeContext';
 
 export default function NovelUI() {
@@ -41,6 +42,9 @@ export default function NovelUI() {
   });
   const [selectedTab, setSelectedTab] = useState('overview');
   const [showContentWarning, setShowContentWarning] = useState(false);
+  const [contributorsData, setContributorsData] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
  useEffect(() => {
   const fetchUser = async () => {
@@ -49,6 +53,24 @@ export default function NovelUI() {
   };
   fetchUser();
 }, []);
+
+  // Fetch contributors from database
+  useEffect(() => {
+    const fetchContributors = async () => {
+      if (!novelData?.contributors || !Array.isArray(novelData.contributors)) return;
+      
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('user_id, username, profile_pic')
+        .in('username', novelData.contributors);
+      
+      if (!error && data) {
+        setContributorsData(data);
+      }
+    };
+    
+    fetchContributors();
+  }, [novelData]);
 
   // ✅ KEEP ONLY THIS ONE checkStatus useEffect
 useEffect(() => {
@@ -76,6 +98,24 @@ useEffect(() => {
 
   checkStatus();
 }, [currentUser, uid, novelData]);
+
+  // Fetch contributors from database
+  useEffect(() => {
+    const fetchContributors = async () => {
+      if (!novelData?.contributors || !Array.isArray(novelData.contributors)) return;
+      
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('user_id, username, profile_pic')
+        .in('username', novelData.contributors);
+      
+      if (!error && data) {
+        setContributorsData(data);
+      }
+    };
+    
+    fetchContributors();
+  }, [novelData]);
 
   useEffect(() => {
     const fetchNovelData = async () => {
@@ -957,17 +997,45 @@ useEffect(() => {
 
           {/* Contributors */}
           {novelData.contributors && Array.isArray(novelData.contributors) && novelData.contributors.length > 0 && (
-            <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-indigo-700/30">
-              <h2 className={`text-lg sm:text-xl md:text-2xl font-black mb-4 sm:mb-6 ${isDark ? 'text-white' : 'text-black'}`}>Contributed By</h2>
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3">
-                {novelData.contributors.map((contributor, idx) => (
-                  <div key={idx} className={`p-2 sm:p-3 rounded-lg text-center ${isDark ? 'bg-indigo-900/40 border border-indigo-700/30' : 'bg-indigo-100/50 border border-indigo-300'}`}>
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mx-auto mb-1 sm:mb-2">
-                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="mt-12 sm:mt-18 pt-9 sm:pt-12 border-t border-indigo-700/30">
+              <h2 className={`text-xl sm:text-2xl md:text-3xl font-black mb-6 sm:mb-9 ${isDark ? 'text-white' : 'text-black'}`}>Contributed By</h2>
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 sm:gap-4">
+                {novelData.contributors.map((contributor, idx) => {
+                  const contributorData = contributorsData.find(c => c.username === contributor);
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`p-3 sm:p-4 rounded-lg text-center cursor-pointer hover:scale-105 transition-transform ${
+                        isDark ? 'bg-indigo-900/40 border border-indigo-700/30 hover:border-indigo-500/50' : 'bg-indigo-100/50 border border-indigo-300 hover:border-indigo-400'
+                      }`}
+                      onClick={() => {
+                        if (contributorData?.user_id) {
+                          setSelectedUserId(contributorData.user_id);
+                          setShowUserProfile(true);
+                        }
+                      }}
+                    >
+                      <div className="w-12 h-12 sm:w-15 sm:h-15 rounded-full overflow-hidden mx-auto mb-1 sm:mb-2">
+                        {contributorData?.profile_pic ? (
+                          <img 
+                            src={contributorData.profile_pic} 
+                            alt={contributor}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                            <User className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-xs sm:text-sm font-bold ${isDark ? 'text-indigo-300' : 'text-indigo-700'} line-clamp-2`}>{contributor}</p>
                     </div>
-                    <p className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-indigo-300' : 'text-indigo-700'} line-clamp-2`}>{contributor}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1000,6 +1068,18 @@ useEffect(() => {
           </div>
         </div>
       )}
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
+
       <div className={`mt-6 p-4 md-6 lg:8 rounded-lg sm:rounded-xl md:rounded-2xl border-t ${isDark ? 'border-indigo-700/30' : 'border-gray-300'}`}>    
                   <ReviewSection 
     isDark={isDark} 
