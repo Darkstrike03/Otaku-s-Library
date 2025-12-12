@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Star, BookOpen, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Award, Sparkles, Globe, Flame, AlertCircle, Crown, MessageSquare, User, ArrowLeft, Volume2, PenTool, Building2, Zap, Radio, Image, Type, BookMarked, Link as LinkIcon, Lightbulb, MessageCircle, Clock, Eye, ThumbsUp, Tv, Film, X} from 'lucide-react';
+  Star, BookOpen, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Award, Sparkles, Globe, Flame, AlertCircle, Crown, MessageSquare, User, ArrowLeft, Volume2, PenTool, Building2, Zap, Radio, Image, Type, BookMarked, Link as LinkIcon, Lightbulb, MessageCircle, Clock, Eye, ThumbsUp, Tv, Film, X, Layers2} from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import { getJsonFile } from '@/lib/pages';
 import html2canvas from 'html2canvas';
@@ -41,6 +41,8 @@ export default function ManhwaUI() {
   const [contributors, setContributors] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [similarItems, setSimilarItems] = useState([]);
+  const [showAllSimilar, setShowAllSimilar] = useState(false);
 
   // Fetch current user
   useEffect(() => {
@@ -207,6 +209,30 @@ export default function ManhwaUI() {
     fetchContributors();
   }, [manhwaData]);
 
+  // Fetch similar items
+  useEffect(() => {
+    const fetchSimilarItems = async () => {
+      if (!manhwaData?.similar_to || !Array.isArray(manhwaData.similar_to) || manhwaData.similar_to.length === 0) {
+        return;
+      }
+      
+      try {
+        const similarResults = await Promise.all(
+          manhwaData.similar_to.map(async (uid) => {
+            const result = await getJsonFile(uid);
+            return result?.item || null;
+          })
+        );
+        
+        setSimilarItems(similarResults.filter(Boolean));
+      } catch (error) {
+        console.error('Error fetching similar items:', error);
+      }
+    };
+
+    fetchSimilarItems();
+  }, [manhwaData]);
+
   // Loading state
   if (loading) {
     return (
@@ -244,7 +270,7 @@ export default function ManhwaUI() {
       </button>
 
       {/* Hero Section - Minimalist & Clean */}
-      <div className="relative h-[60vh] sm:h-[55vh] md:h-[50vh] overflow-hidden isolate">
+      <div className="relative h-[30vh] sm:h-[30vh] md:h-[30vh] overflow-hidden isolate">
         <img
           src={manhwaData.banner || manhwaData.poster}
           alt={manhwaData.title}
@@ -997,6 +1023,67 @@ export default function ManhwaUI() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Similar To Section */}
+      {similarItems.length > 0 && (
+        <div className={`px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto py-8 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+          <div className="mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg">
+              <Layers2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            </div>
+            <h2 className={`text-2xl md:text-3xl font-black ${isDark ? 'text-white' : 'text-black'}`}>
+              Similar To
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {(showAllSimilar ? similarItems : similarItems.slice(0, 5)).map((item, index) => (
+              <Link 
+                key={index}
+                href={`/details/${item.uid}`}
+                className={`group rounded-2xl overflow-hidden transition-all hover:scale-105 ${
+                  isDark ? 'bg-gray-800' : 'bg-white'
+                }`}
+                style={{
+                  boxShadow: isDark 
+                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.08)'
+                }}
+              >
+                <div className="aspect-[2/3] relative overflow-hidden">
+                  <img
+                    src={item.poster}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  {item.rating && (
+                    <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                      <span className="text-white text-xs font-bold">{item.rating}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <h3 className={`font-bold text-sm line-clamp-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    {item.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {similarItems.length > 5 && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setShowAllSimilar(!showAllSimilar)}
+                className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-95"
+              >
+                {showAllSimilar ? 'Show Less' : `Show ${similarItems.length - 5} More`}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

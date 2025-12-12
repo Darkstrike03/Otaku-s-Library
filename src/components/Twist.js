@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import { Users, Star, Clock, BookOpen, Tv, ChevronLeft, ChevronRight, Heart, Github, Upload, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '../app/contexts/ThemeContext';
+import { supabase } from '@/supabaseClient';
+import UserProfile from './UserProfile';
 
 export default function Twist() {
   const { isDark } = useTheme();
   const [selectedUser, setSelectedUser] = useState(null);
   const [userLists, setUserLists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const router = useRouter();
 
   // Load all user lists from TWIST folder
@@ -24,7 +28,7 @@ export default function Twist() {
       // Get list of JSON files from TWIST folder
       // For now, we'll define available users manually
       // In production, you'd dynamically fetch this list
-      const usernames = ['alice', 'bob', 'charlie']; // Add more usernames as files are added
+      const usernames = ['alice', 'bob', 'charlie', 'otaku']; // Add more usernames as files are added
       
       const lists = [];
       for (const username of usernames) {
@@ -32,9 +36,21 @@ export default function Twist() {
           const response = await fetch(`/JSON/TWIST/${username}.json`);
           if (response.ok) {
             const data = await response.json();
+            
+            // Fetch user data from Supabase
+            const { data: userData, error } = await supabase
+              .from('user_data')
+              .select('user_id, username, displayname, profile_pic, bio')
+              .eq('username', data.username)
+              .single();
+            
             lists.push({
-              username,
-              ...data
+              username: data.username,
+              displayName: userData?.displayname || data.username,
+              avatar: userData?.profile_pic || `https://i.pravatar.cc/150?u=${data.username}`,
+              bio: userData?.bio || 'No bio available',
+              user_id: userData?.user_id || null,
+              favorites: data.favorites
             });
           }
         } catch (error) {
@@ -269,16 +285,16 @@ export default function Twist() {
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
               {userLists.map((user) => (
-                <Link
+                <button
                   key={user.username}
-                  href={`/twist/${user.username}`}
+                  onClick={() => setSelectedUser(user.username)}
                   className={`flex-shrink-0 p-4 rounded-2xl transition-all duration-300 ${
                     selectedUser === user.username
                       ? `bg-gradient-to-r ${getCategoryColor('anime')} text-white scale-105 shadow-lg`
                       : isDark
                       ? 'bg-white/5 hover:bg-white/10 border border-white/10 text-white'
                       : 'bg-black/5 hover:bg-black/10 border border-black/10 text-black'
-                  } backdrop-blur-xl`}
+                  } backdrop-blur-xl hover:scale-105`}
                 >
                   <div className="flex items-center gap-3">
                     <img
@@ -293,7 +309,7 @@ export default function Twist() {
                       </p>
                     </div>
                   </div>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -325,7 +341,13 @@ export default function Twist() {
                 <img
                   src={currentUserData.avatar}
                   alt={currentUserData.displayName}
-                  className="w-16 h-16 rounded-full object-cover"
+                  onClick={() => {
+                    if (currentUserData.user_id) {
+                      setSelectedUserId(currentUserData.user_id);
+                      setShowUserProfile(true);
+                    }
+                  }}
+                  className="w-16 h-16 rounded-full object-cover cursor-pointer hover:ring-4 hover:ring-purple-500/50 transition-all"
                 />
                 <div>
                   <h2 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-black'}`}>
@@ -397,6 +419,18 @@ export default function Twist() {
           </div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile 
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {

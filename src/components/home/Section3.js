@@ -282,7 +282,7 @@ export default function LibrarianPicks() {
 
         {/* View More Button */}
         <div className="text-center mt-12">
-          <Link href="/twist/alice">
+          <Link href="/twist/otaku">
             <button className={`group px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:shadow-2xl`}>
               <span className="flex items-center gap-2">
                 <Crown size={20} />

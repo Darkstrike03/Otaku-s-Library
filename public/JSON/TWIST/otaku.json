@@ -1,0 +1,74 @@
+{
+  "username": "Otaku-s-librarian",
+  "favorites": {
+    "anime": [
+      {
+        "id": 1,
+        "uid": "1A",
+        "title": "Steins;Gate",
+        "image": "https://i.ibb.co/z5qW8vF/steinsgate.jpg",
+        "rating": 9.1,
+        "status": "Completed",
+        "episodes": 24
+      },
+      {
+        "id": 2,
+        "uid": "7A",
+        "title": "Monster",
+        "image": "https://i.ibb.co/0yFP7Mh/monster.jpg",
+        "rating": 8.9,
+        "status": "Completed",
+        "episodes": 74
+      },
+      {
+        "id": 3,
+        "uid": "8A",
+        "title": "Cowboy Bebop",
+        "image": "https://i.ibb.co/TYK3qYq/cowboy-bebop.jpg",
+        "rating": 8.8,
+        "status": "Completed",
+        "episodes": 26
+      }
+    ],
+    "manga": [
+      {
+        "id": 1,
+        "uid": "1M",
+        "title": "20th Century Boys",
+        "image": "https://i.ibb.co/GxNqY8F/20th-century.jpg",
+        "rating": 9.0,
+        "status": "Completed",
+        "chapters": 249
+      },
+      {
+        "id": 2,
+        "uid": "2M",
+        "title": "Pluto",
+        "image": "https://i.ibb.co/kXvPvWz/pluto.jpg",
+        "rating": 8.9,
+        "status": "Completed",
+        "chapters": 65
+      },
+      {
+        "id": 3,
+        "uid": "3M",
+        "title": "Vinland Saga",
+        "image": "https://i.ibb.co/hKf3Njc/vinland.jpg",
+        "rating": 8.8,
+        "status": "Ongoing",
+        "chapters": 200
+      }
+    ],
+    "manhwa": [
+      {
+      "id": 1,
+      "uid":"1H",
+      "title": "Omniscient Reader",
+      "image": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/bx119257-Pi21aq3ey9GG.jpg",
+      "rating": 9.5,
+      "status": "Ongoing",
+      "chapters": 300
+    }
+    ]
+  }
+}

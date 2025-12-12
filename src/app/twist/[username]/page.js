@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Users, Star, Clock, BookOpen, Tv, ChevronLeft, ChevronRight, Heart, Github, ArrowLeft, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '../../contexts/ThemeContext';
+import { supabase } from '@/supabaseClient';
+import UserProfile from '@/components/UserProfile';
 
 export default function UserTwistPage() {
   const params = useParams();
@@ -13,6 +15,8 @@ export default function UserTwistPage() {
   const { isDark } = useTheme();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,7 +29,22 @@ export default function UserTwistPage() {
       const response = await fetch(`/JSON/TWIST/${username}.json`);
       if (response.ok) {
         const data = await response.json();
-        setUserData(data);
+        
+        // Fetch user data from Supabase
+        const { data: supabaseUserData, error } = await supabase
+          .from('user_data')
+          .select('user_id, username, displayname, profile_pic, bio')
+          .eq('username', data.username)
+          .single();
+        
+        setUserData({
+          username: data.username,
+          displayName: supabaseUserData?.displayname || data.displayName || data.username,
+          avatar: supabaseUserData?.profile_pic || data.avatar || `https://i.pravatar.cc/150?u=${data.username}`,
+          bio: supabaseUserData?.bio || data.bio || 'No bio available',
+          user_id: supabaseUserData?.user_id || null,
+          favorites: data.favorites
+        });
       } else {
         // User not found
         setUserData(null);
@@ -171,7 +190,13 @@ export default function UserTwistPage() {
             <img
               src={userData.avatar}
               alt={userData.displayName}
-              className="w-24 h-24 rounded-full object-cover border-4 border-white/20"
+              onClick={() => {
+                if (userData.user_id) {
+                  setSelectedUserId(userData.user_id);
+                  setShowUserProfile(true);
+                }
+              }}
+              className="w-24 h-24 rounded-full object-cover border-4 border-white/20 cursor-pointer hover:ring-4 hover:ring-purple-500/50 transition-all"
             />
             <div className="flex-1 text-center sm:text-left">
               <h1 className={`text-3xl sm:text-4xl font-black mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
@@ -246,6 +271,18 @@ export default function UserTwistPage() {
           })}
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile 
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {

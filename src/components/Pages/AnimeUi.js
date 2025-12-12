@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { getJsonFile } from '@/lib/pages';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Star, Play, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User, ChevronRight } from 'lucide-react';
+import { Star, Play, Layers2, ArrowLeft, Calendar, Users, TrendingUp, Heart, Bookmark, Share2, ChevronDown, ChevronUp, Tv, Award, Sparkles, Film, MessageCircle, ThumbsUp, Music, Zap, Globe, Flame, AlertCircle, Crown, MessageSquare, User, ChevronRight } from 'lucide-react';
 import { supabase } from '@/supabaseClient';
 import html2canvas from 'html2canvas';
 import ReviewSection from '../ReviewSection';
@@ -31,6 +31,8 @@ export default function AnimeUI() {
   const [contributorsData, setContributorsData] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [similarItems, setSimilarItems] = useState([]);
+  const [showAllSimilar, setShowAllSimilar] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -66,6 +68,27 @@ export default function AnimeUI() {
     fetchAnimeData();
   }
 }, [uid]);
+
+  // Fetch similar items from database
+  useEffect(() => {
+    const fetchSimilarItems = async () => {
+      if (!animeData?.similar_to || !Array.isArray(animeData.similar_to) || animeData.similar_to.length === 0) return;
+
+      try {
+        const similarResults = await Promise.all(
+          animeData.similar_to.map(async (uid) => {
+            const result = await getJsonFile(uid);
+            return result?.item || null;
+          })
+        );
+        setSimilarItems(similarResults.filter(Boolean));
+      } catch (error) {
+        console.error('Error fetching similar items:', error);
+      }
+    };
+
+    fetchSimilarItems();
+  }, [animeData]);
 
   // Load user's bookmarks and favorites
   const loadUserData = async (userId) => {
@@ -1187,6 +1210,74 @@ https://www.otaku-s-library.vercel.app`;
       )}
     </div>
   )}
+    
+    {/* Similar To Section - Before Reviews */}
+    {similarItems.length > 0 && (
+      <div className={`mt-10 md:mt-12 px-4 md:px-8`}>
+        <div className="max-w-7xl mx-auto">
+          <h2 className={`${isDark ? 'text-white' : 'text-black'} text-2xl md:text-3xl font-black mb-6 flex items-center gap-3`}>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-xl">
+              <Layers2 className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            Similar To
+          </h2>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {similarItems.slice(0, showAllSimilar ? similarItems.length : 5).map((item, idx) => (
+              <Link key={idx} href={`/details/${item.uid}`} className="group">
+                <div className="overflow-hidden rounded-2xl hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl">
+                  <img
+                    src={item.poster}
+                    alt={item.title}
+                    className="w-full h-56 sm:h-64 md:h-72 object-cover group-hover:brightness-110 transition-all"
+                    onError={(e) => (e.target.src = 'https://via.placeholder.com/300x450?text=No+Image')}
+                  />
+                  <div className={`${isDark ? 'bg-indigo-900/50 backdrop-blur-sm' : 'bg-indigo-100'} p-3 md:p-4`}>
+                    <p className={`${isDark ? 'text-white' : 'text-black'} text-sm md:text-base font-bold line-clamp-2`}>
+                      {item.title}
+                    </p>
+                    {item.rating && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        <span className={`text-xs md:text-sm font-semibold ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                          {item.rating}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {similarItems.length > 5 && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setShowAllSimilar(!showAllSimilar)}
+                className={`px-6 py-3 rounded-2xl text-base font-bold transition-all hover:scale-105 flex items-center gap-2 ${
+                  isDark
+                    ? 'bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white'
+                    : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white'
+                } shadow-lg`}
+              >
+                {showAllSimilar ? (
+                  <>
+                    <ChevronUp className="w-5 h-5" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-5 h-5" />
+                    Show {similarItems.length - 5} More
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
     {/* At the bottom of your content */}
 <div className={`mt-6`}>    
   <ReviewSection 
