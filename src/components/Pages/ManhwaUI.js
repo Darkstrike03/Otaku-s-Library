@@ -238,9 +238,9 @@ export default function ManhwaUI() {
     return (
       <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} flex items-center justify-center`}>
         <div className="relative w-24 h-24">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 rounded-full animate-spin"></div>
           <div className={`absolute inset-2 ${isDark ? 'bg-black' : 'bg-white'} rounded-full flex items-center justify-center`}>
-            <BookOpen className="w-8 h-8 text-purple-600 animate-pulse" />
+            <BookOpen className="w-8 h-8 text-pink-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -311,7 +311,7 @@ export default function ManhwaUI() {
           )}
           {manhwaData.popularity && (
             <div 
-              className="bg-purple-500 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl font-black flex items-center gap-1.5 sm:gap-2 shadow-lg"
+              className="bg-pink-500 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl font-black flex items-center gap-1.5 sm:gap-2 shadow-lg"
               style={{ opacity: 0.95 }}
             >
               <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -322,7 +322,7 @@ export default function ManhwaUI() {
       </div>
 
       {/* Main Content - One UI Layout (Content at bottom for thumb reach) */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-[1400px]">
+      <div className="container mx-auto px-1 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-[1400px] overflow-hidden">
         {/* Title Section - Large & Bold (Hidden on Mobile, shown on tablet+) */}
         <div className="hidden sm:block mb-8 sm:mb-10 lg:mb-12">
           <h1 className={`text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-black mb-3 sm:mb-4 leading-tight ${isDark ? 'text-white' : 'text-black'}`}>
@@ -453,7 +453,7 @@ export default function ManhwaUI() {
                 <button
                   onClick={() => setShowShareModal(true)}
                   className={`w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 ${
-                    isDark ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
+                    isDark ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30' : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30'
                   }`}
                 >
                   <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -500,10 +500,10 @@ export default function ManhwaUI() {
 
               {/* Franchise Badge */}
               {manhwaData.franchise && (
-                <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl ${isDark ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-purple-50 border border-purple-200'}`}>
+                <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl ${isDark ? 'bg-pink-500/10 border border-pink-500/30' : 'bg-pink-50 border border-pink-200'}`}>
                   <div className="flex items-center gap-2">
-                    <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
-                    <span className={`text-xs sm:text-sm font-bold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                    <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+                    <span className={`text-xs sm:text-sm font-bold ${isDark ? 'text-pink-300' : 'text-pink-700'}`}>
                       {manhwaData.franchise}
                     </span>
                   </div>
@@ -518,7 +518,7 @@ export default function ManhwaUI() {
             {manhwaData.genre && Array.isArray(manhwaData.genre) && (
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 {manhwaData.main_gen && (
-                  <span className="px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30">
+                  <span className="px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-black bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30">
                     {manhwaData.main_gen}
                   </span>
                 )}
@@ -570,7 +570,7 @@ export default function ManhwaUI() {
 
               {manhwaData.status && (
                 <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5`}>
-                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 mb-2 sm:mb-3" />
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mb-2 sm:mb-3" />
                   <p className={`text-[10px] sm:text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Status</p>
                   <p className={`text-sm sm:text-base lg:text-lg font-black ${manhwaData.status === 'Ongoing' ? 'text-green-500' : 'text-blue-500'}`}>
                     {manhwaData.status}
@@ -607,7 +607,7 @@ export default function ManhwaUI() {
             {/* My List Card */}
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6`}>
               <h3 className={`text-lg sm:text-xl font-black mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3 ${isDark ? 'text-white' : 'text-black'}`}>
-                <BookMarked className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
+                <BookMarked className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500" />
                 <span className="hidden sm:inline">My Reading List</span>
                 <span className="sm:hidden">My List</span>
               </h3>
@@ -632,7 +632,7 @@ export default function ManhwaUI() {
               {manhwaData.synopsis && manhwaData.synopsis.length > 350 && (
                 <button
                   onClick={() => setShowFullSynopsis(!showFullSynopsis)}
-                  className="text-purple-500 hover:text-purple-400 font-black mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm"
+                  className="text-pink-500 hover:text-pink-400 font-black mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm"
                 >
                   {showFullSynopsis ? 'Show less' : 'Read more'}
                   {showFullSynopsis ? <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />}
@@ -664,7 +664,7 @@ export default function ManhwaUI() {
               {manhwaData.studio && (
                 <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6`}>
                   <h3 className={`text-base sm:text-lg font-black mb-3 sm:mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
-                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
                     Studio
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -672,7 +672,7 @@ export default function ManhwaUI() {
                       <div
                         key={idx}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold ${
-                          isDark ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-50 text-purple-700 border border-purple-200'
+                          isDark ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' : 'bg-pink-50 text-pink-700 border border-pink-200'
                         }`}
                       >
                         {studio}
@@ -692,7 +692,7 @@ export default function ManhwaUI() {
                     onClick={() => setSelectedTab(tab)}
                     className={`flex-shrink-0 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-all capitalize whitespace-nowrap ${
                       selectedTab === tab
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
+                        ? 'bg-gradient-to-r from-pink-500 to-pink-500 text-white shadow-lg shadow-pink-500/30'
                         : `${isDark ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`
                     }`}
                   >
@@ -753,7 +753,7 @@ export default function ManhwaUI() {
                             className={`p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                                 <User className="w-6 h-6 text-white" />
                               </div>
                               <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-black'}`}>
@@ -776,12 +776,12 @@ export default function ManhwaUI() {
                     {manhwaData.authors && (
                       <div>
                         <h4 className={`font-black text-lg mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-black'}`}>
-                          <PenTool className="w-5 h-5 text-purple-500" />
+                          <PenTool className="w-5 h-5 text-pink-500" />
                           Authors
                         </h4>
                         <div className="flex flex-wrap gap-3">
                           {(Array.isArray(manhwaData.authors) ? manhwaData.authors : [manhwaData.authors]).map((author, idx) => (
-                            <span key={idx} className="px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-500/30">
+                            <span key={idx} className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-pink-500/30">
                               {author}
                             </span>
                           ))}
@@ -817,7 +817,7 @@ export default function ManhwaUI() {
                               <div className={`p-4 rounded-2xl cursor-pointer transition-all hover:scale-105 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-200'}`}>
                                 <img src={relatedItems.anime.poster} alt={relatedItems.anime.title} className="w-full h-48 object-cover rounded-xl mb-3" />
                                 <p className={`font-bold ${isDark ? 'text-white' : 'text-black'} line-clamp-2 mb-1`}>{relatedItems.anime.title}</p>
-                                <p className="text-sm text-purple-500 font-bold">Anime Adaptation</p>
+                                <p className="text-sm text-pink-500 font-bold">Anime Adaptation</p>
                               </div>
                             </Link>
                           )}
@@ -961,7 +961,7 @@ export default function ManhwaUI() {
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto mb-2 sm:mb-3"
                     />
                   ) : (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center mx-auto mb-2 sm:mb-3">
                       <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                   )}
