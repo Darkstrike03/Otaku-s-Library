@@ -1345,6 +1345,18 @@ https://www.otaku-s-library.vercel.app`;
           animation: pop-in 0.3s ease-out;
         }
       `}</style>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile 
+          userId={selectedUserId}
+          onClose={() => {
+            setShowUserProfile(false);
+            setSelectedUserId(null);
+          }}
+          isDark={isDark}
+        />
+      )}
     </div>
   );
 
