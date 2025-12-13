@@ -201,7 +201,7 @@ export default function SuggestContent() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'}`}>
+    <div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} overflow-x-hidden`}>
       {/* Hero Section */}
       <div className={`relative py-12 sm:py-16 overflow-hidden ${isDark ? 'bg-gradient-to-br from-purple-900/20 to-pink-900/20' : 'bg-gradient-to-br from-purple-100/30 to-pink-100/30'}`}>
         <div className="absolute inset-0 overflow-hidden">
@@ -229,20 +229,20 @@ export default function SuggestContent() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-1 sm:px-6 py-8 sm:py-12 max-w-full">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Form Section */}
           <div className="lg:col-span-1">
-            <div className={`rounded-3xl p-6 sm:p-8 sticky top-24 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
-              <h2 className={`text-2xl font-black mb-6 ${isDark ? 'text-white' : 'text-black'}`}>
+            <div className={`w-full max-w-full rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-8 lg:sticky lg:top-24 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-xl`}>
+              <h2 className={`text-xl sm:text-2xl font-black mb-4 sm:mb-6 ${isDark ? 'text-white' : 'text-black'}`}>
                 Submit Your Idea
               </h2>
 
               {/* Login Prompt */}
               {!currentUser && (
-                <div className={`rounded-xl p-4 mb-6 ${isDark ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-blue-500/20 border border-blue-500/30'}`}>
-                  <div className="flex items-start gap-3">
-                    <LogIn size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 ${isDark ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-blue-500/20 border border-blue-500/30'}`}>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <LogIn size={18} className="text-blue-400 flex-shrink-0 mt-0.5 sm:w-5 sm:h-5" />
                     <div>
                       <p className={`text-sm font-bold mb-2 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                         Login to submit with your name
@@ -255,7 +255,7 @@ export default function SuggestContent() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 {/* Content Name */}
                 <div>
                   <label className={`block text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
@@ -357,7 +357,7 @@ export default function SuggestContent() {
           {/* Requests List Section */}
           <div className="lg:col-span-2">
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
               {[
                 { label: 'Total', count: stats.total, color: 'purple', icon: '📊' },
                 { label: 'Pending', count: stats.pending, color: 'yellow', icon: '⏳' },
@@ -366,10 +366,10 @@ export default function SuggestContent() {
               ].map(stat => (
                 <div
                   key={stat.label}
-                  className={`rounded-2xl p-4 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}
+                  className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}
                 >
-                  <div className="text-2xl font-black mb-1">{stat.icon}</div>
-                  <p className={`text-2xl font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                  <div className="text-xl sm:text-2xl font-black mb-1">{stat.icon}</div>
+                  <p className={`text-xl sm:text-2xl font-black ${isDark ? 'text-white' : 'text-black'}`}>
                     {stat.count}
                   </p>
                   <p className={`text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>
@@ -380,12 +380,12 @@ export default function SuggestContent() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-hide">
               {['pending', 'accepted', 'rejected'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-2 rounded-lg font-bold transition-all whitespace-nowrap ${
+                  className={`px-4 sm:px-5 py-2 rounded-lg text-sm sm:text-base font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                       : isDark ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-black/5 text-black hover:bg-black/10'
@@ -399,20 +399,20 @@ export default function SuggestContent() {
             </div>
 
             {/* Requests List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredRequests.length > 0 ? (
                 filteredRequests.map(request => (
                   <div
                     key={request.id}
-                    className={`rounded-2xl p-5 sm:p-6 transition-all hover:scale-102 ${
+                    className={`rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all hover:scale-102 ${
                       isDark ? 'bg-white/5 border border-white/10 hover:border-white/20' : 'bg-black/5 border border-black/10 hover:border-black/20'
                     } backdrop-blur-xl`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                          <h3 className={`text-base sm:text-lg font-black break-words ${isDark ? 'text-white' : 'text-black'}`}>
                             {request.content_name}
                           </h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -455,7 +455,7 @@ export default function SuggestContent() {
 
                     {/* Actions (Admin Only) */}
                     {currentUser?.user_metadata?.role === 'admin' && request.is_approved === null && (
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4">
                         <button
                           onClick={() => handleApprove(request.id)}
                           className="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-all flex items-center justify-center gap-2"
@@ -483,8 +483,8 @@ export default function SuggestContent() {
                   </div>
                 ))
               ) : (
-                <div className={`rounded-2xl p-12 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
-                  <p className={`text-lg font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                <div className={`rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center ${isDark ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                  <p className={`text-base sm:text-lg font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>
                     No {activeTab} requests yet
                   </p>
                 </div>
@@ -501,6 +501,13 @@ export default function SuggestContent() {
         }
         .animate-pulse {
           animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </div>
